@@ -1,103 +1,182 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { ArrowRight, Users, CreditCard, Calendar, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="space-y-20">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-foreground to-neutral-800 text-background">
+        <div className="container py-24 lg:py-32">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <h1 className="text-4xl lg:text-6xl font-serif font-bold leading-tight">
+              Building <span className="text-accent">Together</span>,<br />
+              Growing <span className="text-accent">Together</span>
+            </h1>
+            <p className="text-xl lg:text-2xl text-neutral-300 max-w-2xl mx-auto">
+              Join our cooperative society and be part of a community that believes in mutual support, 
+              shared prosperity, and collective growth.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/auth/register">
+                <Button size="lg" variant="accent">
+                  Become a Member
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/events">
+                <Button size="lg" variant="ghost">
+                  Explore Events
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Features Section */}
+      <section className="container">
+        <div className="text-center space-y-4 mb-16">
+          <h2 className="text-3xl lg:text-4xl font-serif font-bold">
+            Why Choose Our Cooperative?
+          </h2>
+          <p className="text-xl text-neutral max-w-2xl mx-auto">
+            Experience the benefits of collective strength and shared prosperity
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Users className="h-6 w-6 text-accent" />
+              </div>
+              <CardTitle>Community First</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-neutral">
+                Be part of a supportive community that prioritizes collective growth and mutual assistance.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="h-6 w-6 text-accent" />
+              </div>
+              <CardTitle>Savings & Loans</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-neutral">
+                Access competitive savings accounts and loan services designed for members by members.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-6 w-6 text-accent" />
+              </div>
+              <CardTitle>Regular Events</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-neutral">
+                Participate in community events, workshops, and social gatherings that strengthen our bonds.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="h-6 w-6 text-accent" />
+              </div>
+              <CardTitle>Financial Growth</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-neutral">
+                Benefit from profit-sharing and dividend distributions based on cooperative success.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="bg-neutral-50">
+        <div className="container py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-6">
+              <h2 className="text-3xl lg:text-4xl font-serif font-bold">
+                Comprehensive Financial Services
+              </h2>
+              <p className="text-lg text-neutral">
+                Our cooperative offers a full range of financial services designed to meet the diverse needs 
+                of our members. From savings accounts to loan services, we're here to support your financial journey.
+              </p>
+              <ul className="space-y-3">
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                  <span>Competitive interest rates on savings</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                  <span>Low-interest loans for members</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                  <span>Emergency financial assistance</span>
+                </li>
+                <li className="flex items-center">
+                  <div className="w-2 h-2 bg-accent rounded-full mr-3"></div>
+                  <span>Annual dividend distributions</span>
+                </li>
+              </ul>
+              <Link href="/auth/register">
+                <Button variant="accent" size="lg">
+                  Join Today
+                </Button>
+              </Link>
+            </div>
+            <div className="relative">
+              <div className="aspect-square bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="text-4xl font-bold text-accent">$2.5M+</div>
+                  <div className="text-lg font-medium">Total Member Savings</div>
+                  <div className="text-sm text-neutral">Growing every month</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="container">
+        <div className="bg-foreground text-background rounded-2xl p-12 text-center space-y-6">
+          <h2 className="text-3xl lg:text-4xl font-serif font-bold">
+            Ready to Join Our Community?
+          </h2>
+          <p className="text-xl text-neutral-300 max-w-2xl mx-auto">
+            Start your journey with us today. Become a member and experience the power of collective growth.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/register">
+              <Button size="lg" variant="accent">
+                Register Now
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button size="lg" variant="ghost">
+                Contact Us
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
