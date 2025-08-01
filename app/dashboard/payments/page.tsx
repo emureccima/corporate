@@ -15,7 +15,6 @@ export default function PaymentsPage() {
   const { user } = useAuth();
   const [selectedPaymentType, setSelectedPaymentType] = useState<'Registration' | 'Savings' | 'Loan_Repayment'>('Registration');
   const [amount, setAmount] = useState('');
-  const [transferType, setTransferType] = useState<'Online' | 'Offline'>('Online');
   const [paymentMade, setPaymentMade] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,12 +26,14 @@ export default function PaymentsPage() {
     bankName: process.env.NEXT_PUBLIC_BANK_NAME || 'Bank name to be provided',
   };
 
+  const registrationFee = parseFloat(process.env.NEXT_PUBLIC_REGISTRATION_FEE || '50');
+
   const paymentTypes = [
     {
       id: 'Registration' as const,
       title: 'Registration Fee',
       description: 'One-time membership registration fee',
-      amount: 50,
+      amount: registrationFee,
     },
     {
       id: 'Savings' as const,
@@ -61,7 +62,7 @@ export default function PaymentsPage() {
         amount: parseFloat(amount),
         bankAccount: bankDetails.accountNumber,
         accountName: bankDetails.accountName,
-        transferType,
+        transferType: 'Bank Transfer',
         paymentMade,
         confirmed: false,
         status: 'Pending',
@@ -160,32 +161,14 @@ export default function PaymentsPage() {
                   required
                 />
 
-                <div className="space-y-3">
-                  <label className="text-sm font-medium">Transfer Type</label>
-                  <div className="flex space-x-4">
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="transferType"
-                        value="Online"
-                        checked={transferType === 'Online'}
-                        onChange={(e) => setTransferType(e.target.value as 'Online' | 'Offline')}
-                        className="mr-2"
-                      />
-                      Online Transfer
-                    </label>
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="transferType"
-                        value="Offline"
-                        checked={transferType === 'Offline'}
-                        onChange={(e) => setTransferType(e.target.value as 'Online' | 'Offline')}
-                        className="mr-2"
-                      />
-                      Offline Transfer
-                    </label>
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-center">
+                    <CreditCard className="h-5 w-5 text-blue-600 mr-2" />
+                    <span className="font-medium text-blue-900">Payment Method: Bank Transfer</span>
                   </div>
+                  <p className="text-sm text-blue-700 mt-1">
+                    All payments are processed through bank transfer to our cooperative account.
+                  </p>
                 </div>
 
                 <Button
@@ -261,7 +244,7 @@ export default function PaymentsPage() {
                     className="rounded"
                   />
                   <label htmlFor="paymentMade" className="text-sm">
-                    I have made the payment
+                    I have completed the bank transfer
                   </label>
                 </div>
 
@@ -271,7 +254,7 @@ export default function PaymentsPage() {
                   disabled={!paymentMade || !amount || isSubmitting}
                   isLoading={isSubmitting}
                 >
-                  Submit Payment Confirmation
+                  Submit Bank Transfer Confirmation
                 </Button>
               </form>
             </CardContent>
@@ -292,29 +275,29 @@ export default function PaymentsPage() {
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-accent rounded-full mt-2"></div>
                   <div>
-                    <h4 className="font-medium">Step 1: Make Payment</h4>
-                    <p className="text-sm text-neutral">Transfer the amount to our bank account</p>
+                    <h4 className="font-medium">Step 1: Get Bank Details</h4>
+                    <p className="text-sm text-neutral">Click "Show Bank Details" to copy account information</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-neutral-300 rounded-full mt-2"></div>
                   <div>
-                    <h4 className="font-medium">Step 2: Confirm Payment</h4>
-                    <p className="text-sm text-neutral">Mark the payment as made in this form</p>
+                    <h4 className="font-medium">Step 2: Make Bank Transfer</h4>
+                    <p className="text-sm text-neutral">Transfer the amount to our cooperative bank account</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-neutral-300 rounded-full mt-2"></div>
                   <div>
-                    <h4 className="font-medium">Step 3: Admin Verification</h4>
-                    <p className="text-sm text-neutral">Admin will verify and approve your payment</p>
+                    <h4 className="font-medium">Step 3: Confirm Transfer</h4>
+                    <p className="text-sm text-neutral">Mark the payment as completed in this form</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">
                   <div className="w-2 h-2 bg-neutral-300 rounded-full mt-2"></div>
                   <div>
-                    <h4 className="font-medium">Step 4: Registration Complete</h4>
-                    <p className="text-sm text-neutral">Your account will be updated with the payment</p>
+                    <h4 className="font-medium">Step 4: Admin Verification</h4>
+                    <p className="text-sm text-neutral">Admin will verify the bank transfer and approve payment</p>
                   </div>
                 </div>
               </div>
@@ -330,8 +313,8 @@ export default function PaymentsPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-success">
-                All payments are verified by our admin team before being processed. 
-                Your financial information is secure and protected.
+                All bank transfers are verified by our admin team before being processed. 
+                Only bank transfer payments are accepted for security and transparency.
               </p>
             </CardContent>
           </Card>

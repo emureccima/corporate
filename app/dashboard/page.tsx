@@ -8,7 +8,7 @@ import { DollarSign, CreditCard, Calendar, TrendingUp, Plus, CheckCircle, AlertC
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { statsService, paymentService } from '@/lib/services';
+import { statsService, paymentService, memberService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
 
 export default function DashboardPage() {
@@ -20,6 +20,7 @@ export default function DashboardPage() {
     lastPayment: null as any
   });
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [memberStatus, setMemberStatus] = useState('Pending');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,14 +35,16 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       
-      // Load member stats and recent payments
-      const [memberStats, payments] = await Promise.all([
+      // Load member stats, recent payments, and current member status
+      const [memberStats, payments, memberData] = await Promise.all([
         statsService.getMemberStats(user.memberId),
-        paymentService.getMemberPayments(user.memberId)
+        paymentService.getMemberPayments(user.memberId),
+        memberService.getMemberById(user.memberId)
       ]);
 
       setStats(memberStats);
       setRecentPayments(payments.slice(0, 5)); // Show last 5 payments
+      setMemberStatus(memberData?.status || 'Pending');
       
     } catch (error) {
       console.error('Error loading member data:', error);
@@ -293,8 +296,14 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-neutral">Status</span>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
-                      Active
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      memberStatus === 'Active' 
+                        ? 'bg-green-100 text-green-800'
+                        : memberStatus === 'Pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {memberStatus}
                     </span>
                   </div>
                   

@@ -7,18 +7,27 @@ import { Input } from '@/components/ui/Input';
 import { Users, Search, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { memberService } from '@/lib/services';
+import { memberService, registrationService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminMembersPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<any[]>([]);
+  const [registrationPayments, setRegistrationPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     loadMembers();
+    
+    // Auto-refresh every 30 seconds to catch status updates
+    const interval = setInterval(() => {
+      loadMembers(true);
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -41,16 +50,65 @@ export default function AdminMembersPage() {
     setFilteredMembers(filtered);
   }, [members, searchTerm, statusFilter]);
 
-  const loadMembers = async () => {
+  const loadMembers = async (isRefresh = false) => {
     try {
-      setLoading(true);
-      const memberData = await memberService.getAllMembers();
+      if (isRefresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      
+      const [memberData, registrationData] = await Promise.all([
+        memberService.getAllMembers(),
+        registrationService.getRegistrationPayments()
+      ]);
+      
       setMembers(memberData);
+      setRegistrationPayments(registrationData);
       setFilteredMembers(memberData);
     } catch (error) {
       console.error('Error loading members:', error);
     } finally {
-      setLoading(false);
+      if (isRefresh) {
+        setRefreshing(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleRefresh = () => {
+    loadMembers(true);
+  };
+
+  // Get registration fee status for a member
+  const getRegistrationStatus = (memberId: string) => {
+    const registration = registrationPayments.find(p => p.memberId === memberId);
+    if (!registration) return { 
+      status: 'Not Paid', 
+      color: 'bg-red-100 text-red-800 border-red-200',
+      timestamp: null
+    };
+    
+    switch (registration.status) {
+      case 'Confirmed':
+        return { 
+          status: 'Paid', 
+          color: 'bg-green-100 text-green-800 border-green-200',
+          timestamp: registration.confirmedAt || registration.$updatedAt
+        };
+      case 'Pending':
+        return { 
+          status: 'Pending', 
+          color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+          timestamp: registration.$createdAt
+        };
+      default:
+        return { 
+          status: 'Not Paid', 
+          color: 'bg-red-100 text-red-800 border-red-200',
+          timestamp: null
+        };
     }
   };
 
@@ -80,6 +138,15 @@ export default function AdminMembersPage() {
               <div className="text-sm text-neutral">
                 Total: {members.length} members
               </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                isLoading={refreshing}
+              >
+                {refreshing ? 'Refreshing...' : 'Refresh Data'}
+              </Button>
             </div>
           </div>
 
@@ -115,10 +182,12 @@ export default function AdminMembersPage() {
                 <div>
                   <Button 
                     variant="outline" 
-                    onClick={loadMembers}
+                    onClick={handleRefresh}
+                    disabled={refreshing}
+                    isLoading={refreshing}
                     className="w-full"
                   >
-                    Refresh
+                    {refreshing ? 'Refreshing...' : 'Refresh'}
                   </Button>
                 </div>
               </div>
@@ -165,15 +234,27 @@ export default function AdminMembersPage() {
                       </div>
                       
                       <div className="flex flex-col items-end space-y-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          member.status === 'Active' 
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : member.status === 'Pending'
-                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
-                            : 'bg-red-100 text-red-800 border border-red-200'
-                        }`}>
-                          {member.status}
-                        </span>
+                        <div className="flex flex-col items-end space-y-2">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            member.status === 'Active' 
+                              ? 'bg-green-100 text-green-800 border border-green-200'
+                              : member.status === 'Pending'
+                              ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                              : 'bg-red-100 text-red-800 border border-red-200'
+                          }`}>
+                            {member.status}
+                          </span>
+                          <div className="text-right">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRegistrationStatus(member.$id).color}`}>
+                              Registration: {getRegistrationStatus(member.$id).status}
+                            </span>
+                            {getRegistrationStatus(member.$id).timestamp && (
+                              <p className="text-xs text-neutral mt-1">
+                                {getRegistrationStatus(member.$id).status === 'Paid' ? 'Confirmed' : 'Submitted'}: {formatDate(getRegistrationStatus(member.$id).timestamp)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
                         
                         <div className="flex space-x-2">
                           <Button 

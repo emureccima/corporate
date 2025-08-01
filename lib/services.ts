@@ -152,6 +152,293 @@ export const paymentService = {
   }
 };
 
+// Registration Fee Services
+export const registrationService = {
+  // Get registration fee payments
+  async getRegistrationPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Registration'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching registration payments:', error);
+      return [];
+    }
+  },
+
+  // Get pending registration fee payments
+  async getPendingRegistrationPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Registration'),
+          Query.equal('status', 'Pending'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching pending registration payments:', error);
+      return [];
+    }
+  },
+
+  // Get confirmed registration fee payments
+  async getConfirmedRegistrationPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Registration'),
+          Query.equal('status', 'Confirmed'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching confirmed registration payments:', error);
+      return [];
+    }
+  },
+
+  // Get registration fee stats
+  async getRegistrationStats() {
+    try {
+      const [allRegistrations, pendingRegistrations, confirmedRegistrations] = await Promise.all([
+        this.getRegistrationPayments(),
+        this.getPendingRegistrationPayments(),
+        this.getConfirmedRegistrationPayments()
+      ]);
+
+      const totalAmount = confirmedRegistrations.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+      const pendingAmount = pendingRegistrations.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+      return {
+        totalRegistrations: allRegistrations.length,
+        confirmedRegistrations: confirmedRegistrations.length,
+        pendingRegistrations: pendingRegistrations.length,
+        totalAmount,
+        pendingAmount,
+        registrationFee: parseFloat(process.env.NEXT_PUBLIC_REGISTRATION_FEE || '50')
+      };
+    } catch (error) {
+      console.error('Error fetching registration stats:', error);
+      return {
+        totalRegistrations: 0,
+        confirmedRegistrations: 0,
+        pendingRegistrations: 0,
+        totalAmount: 0,
+        pendingAmount: 0,
+        registrationFee: 50
+      };
+    }
+  },
+
+  // Confirm registration payment and activate member
+  async confirmRegistrationPayment(paymentId: string) {
+    try {
+      // First, update the payment status
+      const updatedPayment = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        paymentId,
+        {
+          status: 'Confirmed',
+          confirmed: true,
+          confirmedAt: new Date().toISOString()
+        }
+      );
+
+      // If payment is confirmed and it's a registration payment, activate the member
+      if (updatedPayment.paymentType === 'Registration' && updatedPayment.memberId) {
+        try {
+          await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.membersCollectionId,
+            updatedPayment.memberId,
+            {
+              status: 'Active',
+              activatedAt: new Date().toISOString()
+            }
+          );
+          console.log(`Member ${updatedPayment.memberId} activated after registration fee confirmation`);
+        } catch (memberError) {
+          console.error('Error activating member:', memberError);
+          // Payment is still confirmed even if member activation fails
+        }
+      }
+
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error confirming registration payment:', error);
+      throw error;
+    }
+  }
+};
+
+// Savings Services
+export const savingsService = {
+  // Get all savings payments
+  async getAllSavingsPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Savings'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching savings payments:', error);
+      return [];
+    }
+  },
+
+  // Get member savings payments
+  async getMemberSavingsPayments(memberId: string) {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Savings'),
+          Query.equal('memberId', memberId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching member savings:', error);
+      return [];
+    }
+  },
+
+  // Get savings statistics
+  async getSavingsStats() {
+    try {
+      const [allSavings, confirmedSavings] = await Promise.all([
+        this.getAllSavingsPayments(),
+        databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.paymentsCollectionId,
+          [
+            Query.equal('paymentType', 'Savings'),
+            Query.equal('status', 'Confirmed')
+          ]
+        )
+      ]);
+
+      const totalAmount = confirmedSavings.documents.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+      const pendingAmount = allSavings.filter(p => p.status === 'Pending').reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+      return {
+        totalSavings: allSavings.length,
+        confirmedSavings: confirmedSavings.documents.length,
+        pendingSavings: allSavings.filter(p => p.status === 'Pending').length,
+        totalAmount,
+        pendingAmount
+      };
+    } catch (error) {
+      console.error('Error fetching savings stats:', error);
+      return {
+        totalSavings: 0,
+        confirmedSavings: 0,
+        pendingSavings: 0,
+        totalAmount: 0,
+        pendingAmount: 0
+      };
+    }
+  }
+};
+
+// Loans Services
+export const loansService = {
+  // Get all loan payments
+  async getAllLoanPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Loan_Repayment'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching loan payments:', error);
+      return [];
+    }
+  },
+
+  // Get member loan payments
+  async getMemberLoanPayments(memberId: string) {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Loan_Repayment'),
+          Query.equal('memberId', memberId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching member loan payments:', error);
+      return [];
+    }
+  },
+
+  // Get loan statistics
+  async getLoanStats() {
+    try {
+      const [allLoans, confirmedLoans] = await Promise.all([
+        this.getAllLoanPayments(),
+        databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.paymentsCollectionId,
+          [
+            Query.equal('paymentType', 'Loan_Repayment'),
+            Query.equal('status', 'Confirmed')
+          ]
+        )
+      ]);
+
+      const totalAmount = confirmedLoans.documents.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+      const pendingAmount = allLoans.filter(p => p.status === 'Pending').reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+      return {
+        totalRepayments: allLoans.length,
+        confirmedRepayments: confirmedLoans.documents.length,
+        pendingRepayments: allLoans.filter(p => p.status === 'Pending').length,
+        totalAmount,
+        pendingAmount
+      };
+    } catch (error) {
+      console.error('Error fetching loan stats:', error);
+      return {
+        totalRepayments: 0,
+        confirmedRepayments: 0,
+        pendingRepayments: 0,
+        totalAmount: 0,
+        pendingAmount: 0
+      };
+    }
+  }
+};
+
 // Stats Services
 export const statsService = {
   // Get dashboard stats for admin

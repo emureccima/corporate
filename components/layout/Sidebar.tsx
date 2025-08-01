@@ -15,7 +15,9 @@ import {
   X,
   DollarSign,
   FileText,
-  TrendingUp
+  TrendingUp,
+  UserPlus,
+  PiggyBank
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -33,10 +35,12 @@ export function Sidebar({ userRole }: SidebarProps) {
   const adminNavigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Members', href: '/admin/members', icon: Users },
+    { name: 'Registrations', href: '/admin/registrations', icon: UserPlus },
     { name: 'Payments', href: '/admin/payments', icon: CreditCard },
+    { name: 'Savings', href: '/admin/savings', icon: PiggyBank },
+    { name: 'Loans', href: '/admin/loans', icon: DollarSign },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Gallery', href: '/admin/gallery', icon: Camera },
-    { name: 'Reports', href: '/admin/reports', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 

@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { DollarSign, Search, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { paymentService } from '@/lib/services';
+import { paymentService, registrationService } from '@/lib/services';
+import { databases, appwriteConfig } from '@/lib/appwrite';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminPaymentsPage() {
@@ -58,13 +59,49 @@ export default function AdminPaymentsPage() {
   const handlePaymentAction = async (paymentId: string, action: 'confirm' | 'reject') => {
     try {
       setProcessingPayment(paymentId);
-      // TODO: Implement payment confirmation/rejection logic
-      console.log(`${action} payment:`, paymentId);
+      
+      if (action === 'confirm') {
+        // Check if this is a registration payment to use special confirmation logic
+        const payment = payments.find(p => p.$id === paymentId);
+        
+        if (payment?.paymentType === 'Registration') {
+          // Use registration service for auto-activation
+          await registrationService.confirmRegistrationPayment(paymentId);
+          alert('Registration payment confirmed! Member has been activated.');
+        } else {
+          // Regular payment confirmation
+          await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.paymentsCollectionId,
+            paymentId,
+            {
+              status: 'Confirmed',
+              confirmed: true,
+              confirmedAt: new Date().toISOString()
+            }
+          );
+          alert('Payment confirmed successfully!');
+        }
+      } else if (action === 'reject') {
+        // Reject payment
+        await databases.updateDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.paymentsCollectionId,
+          paymentId,
+          {
+            status: 'Rejected',
+            confirmed: false,
+            rejectedAt: new Date().toISOString()
+          }
+        );
+        alert('Payment has been rejected.');
+      }
       
       // Refresh payments after action
       await loadPayments();
     } catch (error) {
       console.error(`Error ${action}ing payment:`, error);
+      alert(`Failed to ${action} payment. Please try again.`);
     } finally {
       setProcessingPayment(null);
     }

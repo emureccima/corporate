@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: email,
           phone: '',
           joinDate: new Date().toISOString(),
-          status: 'Active',
+          status: 'Pending',
           role: email === process.env.ADMIN_EMAIL ? 'admin' : 'member',
         }
       );
