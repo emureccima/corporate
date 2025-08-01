@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CreditCard, CheckCircle, AlertCircle, Copy } from 'lucide-react';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { databases, appwriteConfig } from '@/lib/appwrite';
+import { ID } from 'appwrite';
 
 export default function PaymentsPage() {
   const { user } = useAuth();
@@ -49,22 +53,28 @@ export default function PaymentsPage() {
     setIsSubmitting(true);
 
     try {
-      // Here you would create a payment record in Appwrite database
+      // Create payment record in Appwrite database
       const paymentData = {
         memberId: user?.memberId,
         memberName: user?.name,
         paymentType: selectedPaymentType,
         amount: parseFloat(amount),
-        bankAccountNumber: bankDetails.accountNumber,
+        bankAccount: bankDetails.accountNumber,
+        accountName: bankDetails.accountName,
         transferType,
         paymentMade,
         confirmed: false,
         status: 'Pending',
-        date: new Date().toISOString(),
-        description: `${selectedPaymentType} payment of $${amount}`,
+        description: `${selectedPaymentType.replace('_', ' ')} payment of $${amount}`,
       };
 
-      console.log('Payment submitted:', paymentData);
+      // Save to Appwrite
+      await databases.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        ID.unique(),
+        paymentData
+      );
       
       // Show success message
       alert('Payment submission successful! Please wait for admin confirmation.');
@@ -88,11 +98,13 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div className="container py-8 max-w-4xl mx-auto space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-serif font-bold">Make a Payment</h1>
-        <p className="text-neutral">Choose your payment type and complete the transaction</p>
-      </div>
+    <ProtectedRoute requiredRole="member">
+      <DashboardLayout userRole="member">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-serif font-bold">Make a Payment</h1>
+            <p className="text-neutral">Choose your payment type and complete the transaction</p>
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Payment Form */}
@@ -325,6 +337,8 @@ export default function PaymentsPage() {
           </Card>
         </div>
       </div>
-    </div>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
   );
 }

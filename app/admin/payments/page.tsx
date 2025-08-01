@@ -1,0 +1,280 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { DollarSign, Search, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { paymentService } from '@/lib/services';
+import { formatDate } from '@/lib/utils';
+
+export default function AdminPaymentsPage() {
+  const [payments, setPayments] = useState<any[]>([]);
+  const [filteredPayments, setFilteredPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [processingPayment, setProcessingPayment] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadPayments();
+  }, []);
+
+  useEffect(() => {
+    let filtered = payments;
+
+    if (searchTerm) {
+      filtered = filtered.filter(payment => 
+        payment.memberName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payment.paymentType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        payment.bankAccount?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(payment => 
+        payment.status.toLowerCase() === statusFilter.toLowerCase()
+      );
+    }
+
+    setFilteredPayments(filtered);
+  }, [payments, searchTerm, statusFilter]);
+
+  const loadPayments = async () => {
+    try {
+      setLoading(true);
+      const paymentData = await paymentService.getAllPayments();
+      setPayments(paymentData);
+      setFilteredPayments(paymentData);
+    } catch (error) {
+      console.error('Error loading payments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentAction = async (paymentId: string, action: 'confirm' | 'reject') => {
+    try {
+      setProcessingPayment(paymentId);
+      // TODO: Implement payment confirmation/rejection logic
+      console.log(`${action} payment:`, paymentId);
+      
+      // Refresh payments after action
+      await loadPayments();
+    } catch (error) {
+      console.error(`Error ${action}ing payment:`, error);
+    } finally {
+      setProcessingPayment(null);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'rejected':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getPaymentTypeDisplay = (type: string) => {
+    return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  if (loading) {
+    return (
+      <ProtectedRoute requiredRole="admin">
+        <DashboardLayout userRole="admin">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
+          </div>
+        </DashboardLayout>
+      </ProtectedRoute>
+    );
+  }
+
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <DashboardLayout userRole="admin">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-serif font-bold">Payment Management</h1>
+              <p className="text-neutral">Review and confirm member payments</p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-neutral">
+                Total: {payments.length} payments
+              </div>
+              <div className="text-sm text-accent font-medium">
+                Pending: {payments.filter(p => p.status === 'Pending').length}
+              </div>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Search className="h-5 w-5 mr-2" />
+                Search & Filter
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Input
+                    placeholder="Search by member, type, or bank account..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+                <div>
+                  <Button 
+                    variant="outline" 
+                    onClick={loadPayments}
+                    className="w-full"
+                  >
+                    Refresh
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payments List */}
+          <div className="grid grid-cols-1 gap-6">
+            {filteredPayments.length > 0 ? (
+              filteredPayments.map((payment) => (
+                <Card key={payment.$id} className="hover:shadow-lg transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col lg:flex-row lg:items-start justify-between space-y-4 lg:space-y-0">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="text-lg font-semibold">{payment.memberName}</h3>
+                            <p className="text-sm text-neutral">Member ID: {payment.memberId}</p>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(payment.status)}`}>
+                            {payment.status}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center">
+                              <DollarSign className="h-4 w-4 mr-2 text-accent" />
+                              <span className="font-semibold text-lg">${payment.amount}</span>
+                            </div>
+                            <div>
+                              <span className="text-sm text-neutral">Payment Type:</span>
+                              <p className="font-medium">{getPaymentTypeDisplay(payment.paymentType)}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm text-neutral">Date Submitted:</span>
+                              <p className="font-medium">{formatDate(payment.$createdAt)}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-sm text-neutral">Bank Account:</span>
+                              <p className="font-medium">{payment.bankAccount}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm text-neutral">Account Name:</span>
+                              <p className="font-medium">{payment.accountName}</p>
+                            </div>
+                            {payment.description && (
+                              <div>
+                                <span className="text-sm text-neutral">Description:</span>
+                                <p className="font-medium text-sm">{payment.description}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col space-y-3 min-w-[200px]">
+                        {payment.status === 'Pending' && (
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="accent"
+                              onClick={() => handlePaymentAction(payment.$id, 'confirm')}
+                              disabled={processingPayment === payment.$id}
+                              className="flex-1"
+                            >
+                              {processingPayment === payment.$id ? (
+                                <Clock className="h-4 w-4 mr-1 animate-spin" />
+                              ) : (
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                              )}
+                              Confirm
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handlePaymentAction(payment.$id, 'reject')}
+                              disabled={processingPayment === payment.$id}
+                              className="flex-1"
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </div>
+                        )}
+                        
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => {/* View payment details */}}
+                          className="w-full"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <DollarSign className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No payments found</h3>
+                  <p className="text-neutral">
+                    {searchTerm || statusFilter !== 'all' 
+                      ? 'Try adjusting your search or filter criteria.'
+                      : 'No payment submissions yet.'
+                    }
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+}
