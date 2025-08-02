@@ -13,7 +13,7 @@ export default function Home() {
         <div className="container py-24 lg:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             {/* Logo */}
-            <div className="flex justify-center mb-8">
+            {/* <div className="flex justify-center mb-8">
               <Image
                 src="/emurelogo.jpg"
                 alt="EMURECCIMA Logo"
@@ -21,7 +21,7 @@ export default function Home() {
                 height={120}
                 className="rounded-2xl shadow-lg"
               />
-            </div>
+            </div> */}
             <h1 className="text-4xl lg:text-6xl font-serif font-bold leading-tight">
               Building <span className="text-accent">Together</span>,<br />
               Growing <span className="text-accent">Together</span>
