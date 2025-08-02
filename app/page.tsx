@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight, Users, CreditCard, Calendar, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -11,6 +12,16 @@ export default function Home() {
       <section className="relative bg-gradient-to-br from-foreground to-neutral-800 text-background">
         <div className="container py-24 lg:py-32">
           <div className="max-w-4xl mx-auto text-center space-y-8">
+            {/* Logo */}
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/emurelogo.jpg"
+                alt="EMURECCIMA Logo"
+                width={120}
+                height={120}
+                className="rounded-2xl shadow-lg"
+              />
+            </div>
             <h1 className="text-4xl lg:text-6xl font-serif font-bold leading-tight">
               Building <span className="text-accent">Together</span>,<br />
               Growing <span className="text-accent">Together</span>

@@ -1,4 +1,4 @@
-# CoopSociety - Cooperative Membership Platform
+# EMURECCIMA - Cooperative Membership Platform
 
 A modern, full-featured cooperative society management platform built with Next.js, Tailwind CSS, and Appwrite. This application enables cooperative societies to manage member registration, financial services (savings & loans), community events, and administrative operations.
 

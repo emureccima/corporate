@@ -1,5 +1,5 @@
 # Appwrite Database Setup Guide
-## CoopSociety - Cooperative Membership Platform
+## EMURECCIMA - Cooperative Membership Platform
 
 This document contains all the collections and attributes you need to create in your Appwrite database.
 

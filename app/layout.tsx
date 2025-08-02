@@ -15,7 +15,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "CoopSociety - Cooperative Membership Platform",
+  title: "Emure Chambers of Commerce, Mines, Industries and Agriculture (EMURECCIMA)",
   description: "Building a stronger community through cooperative values and mutual support. Manage memberships, savings, loans, and community events.",
   keywords: "cooperative, society, membership, savings, loans, community, events",
 };

@@ -27,7 +27,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold">Email</h3>
-                    <p className="text-neutral">info@coopsociety.org</p>
+                    <p className="text-neutral">info@EMURECCIMA.org</p>
                     <p className="text-sm text-neutral">We'll respond within 24 hours</p>
                   </div>
                 </CardContent>

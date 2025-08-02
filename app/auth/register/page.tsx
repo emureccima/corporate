@@ -64,7 +64,7 @@ export default function RegisterPage() {
           <div className="bg-orange-600 h-2 w-full"></div>
           <CardContent className="p-8">
             <div className="text-center mb-6">
-              <h1 className="text-3xl font-bold">Join Our Cooperative</h1>
+              <h1 className="text-3xl font-bold">Join Our Chamber</h1>
               <p className="text-sm text-neutral-600">
                 Create your account and become part of our community
               </p>

@@ -10,7 +10,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-serif font-bold">CoopSociety</h3>
+            <h3 className="text-xl font-serif font-bold">EMURECCIMA</h3>
             <p className="text-neutral-300 text-sm">
               Building a stronger community through cooperative values and mutual support.
             </p>
@@ -81,7 +81,7 @@ export function Footer() {
             <div className="space-y-3 text-sm">
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-accent" />
-                <span className="text-neutral-300">info@coopsociety.org</span>
+                <span className="text-neutral-300">info@EMURECCIMA.org</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-accent" />
@@ -96,7 +96,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-neutral-700 mt-8 pt-8 text-center text-sm text-neutral-300">
-          <p>&copy; {currentYear} CoopSociety. All rights reserved.</p>
+          <p>&copy; {currentYear} EMURECCIMA. All rights reserved.</p>
         </div>
       </div>
     </footer>

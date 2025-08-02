@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
@@ -90,11 +91,15 @@ export function Sidebar({ userRole }: SidebarProps) {
           {/* Header */}
           <div className="p-6 border-b border-neutral-700">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
-                <span className="text-xl font-bold text-white">C</span>
-              </div>
+              <Image
+                src="/emurelogo.jpg"
+                alt="EMURECCIMA Logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
               <div>
-                <h2 className="text-lg font-serif font-bold">CoopSociety</h2>
+                <h2 className="text-lg font-serif font-bold">EMURECCIMA</h2>
                 <p className="text-xs text-neutral-300">
                   {userRole === 'admin' ? 'Admin Panel' : 'Member Portal'}
                 </p>

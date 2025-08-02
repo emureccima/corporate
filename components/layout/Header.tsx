@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -32,7 +33,7 @@ export function Header({ user, onLogout }: HeaderProps) {
     <>
       {/* Promotional Banner */}
       <div className="bg-accent text-accent-foreground text-center py-2 text-sm">
-        🎉 Welcome to our Cooperative Society - Building together, Growing together
+        🎉 Welcome to Emure Chambers of Commerce, Mines, Industries and Agriculture  - Building together, Growing together
       </div>
       
       {/* Main Header */}
@@ -40,9 +41,16 @@ export function Header({ user, onLogout }: HeaderProps) {
         <div className="container">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="text-2xl font-serif font-bold">
-                CoopSociety
+            <Link href="/" className="flex items-center space-x-3">
+              <Image
+                src="/emurelogo.jpg"
+                alt="EMURECCIMA Logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
+              <div className="text-xl font-serif font-bold">
+                EMURECCIMA
               </div>
             </Link>
 
