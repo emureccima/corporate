@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Users, Search, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, PiggyBank, Download, Eye, CreditCard } from 'lucide-react';
+import { Users, Search, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, PiggyBank, Download, Eye, CreditCard, User, DollarSign, FileText, TrendingUp, Clock, X } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { memberService, registrationService, savingsService, loansService } from '@/lib/services';
@@ -20,6 +20,8 @@ export default function AdminMembersPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [showMemberDetails, setShowMemberDetails] = useState(false);
 
   useEffect(() => {
     loadMembers();
@@ -121,6 +123,16 @@ export default function AdminMembersPage() {
     loadMembers(true);
   };
 
+  const openMemberDetails = (member: any) => {
+    setSelectedMember(member);
+    setShowMemberDetails(true);
+  };
+
+  const closeMemberDetails = () => {
+    setSelectedMember(null);
+    setShowMemberDetails(false);
+  };
+
   // Download member savings report
   const downloadMemberSavings = (member: any) => {
     const memberSavingsData = memberSavings[member.$id]?.allSavings || [];
@@ -129,7 +141,7 @@ export default function AdminMembersPage() {
       ['Date', 'Amount', 'Status', 'Description', 'Confirmed Date'].join(','),
       ...memberSavingsData.map((saving: any) => [
         formatDate(saving.$createdAt),
-        `$${saving.amount}`,
+        `₦${saving.amount}`,
         saving.status,
         saving.description || 'Savings deposit',
         saving.confirmedAt ? formatDate(saving.confirmedAt) : 'N/A'
@@ -153,9 +165,9 @@ export default function AdminMembersPage() {
       ['Date', 'Requested Amount', 'Approved Amount', 'Outstanding Balance', 'Status', 'Purpose'].join(','),
       ...memberLoanData.map((loan: any) => [
         formatDate(loan.$createdAt),
-        `$${loan.requestedAmount}`,
-        `$${loan.approvedAmount || 0}`,
-        `$${loan.currentBalance || 0}`,
+        `₦${loan.requestedAmount}`,
+        `₦${loan.approvedAmount || 0}`,
+        `₦${loan.currentBalance || 0}`,
         loan.status,
         loan.purpose || 'N/A'
       ].join(','))
@@ -330,7 +342,7 @@ export default function AdminMembersPage() {
                                   <span className="text-sm font-medium text-green-800">Total Savings</span>
                                 </div>
                                 <span className="text-lg font-bold text-green-700">
-                                  ${memberSavings[member.$id]?.totalAmount?.toLocaleString() || '0'}
+                                  ₦{memberSavings[member.$id]?.totalAmount?.toLocaleString() || '0'}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between mt-1 text-xs text-green-700">
@@ -351,7 +363,7 @@ export default function AdminMembersPage() {
                                   <span className="text-sm font-medium text-blue-800">Outstanding Loans</span>
                                 </div>
                                 <span className="text-lg font-bold text-red-600">
-                                  ${memberLoans[member.$id]?.totalOutstanding?.toLocaleString() || '0'}
+                                  ₦{memberLoans[member.$id]?.totalOutstanding?.toLocaleString() || '0'}
                                 </span>
                               </div>
                               <div className="flex items-center justify-between mt-1 text-xs text-blue-700">
@@ -395,7 +407,7 @@ export default function AdminMembersPage() {
                             <Button 
                               size="sm" 
                               variant="outline"
-                              onClick={() => {/* View details functionality */}}
+                              onClick={() => openMemberDetails(member)}
                             >
                               <Eye className="h-4 w-4 mr-1" />
                               View Details
@@ -468,6 +480,307 @@ export default function AdminMembersPage() {
               </Card>
             )}
           </div>
+
+          {/* Member Details Modal */}
+          {showMemberDetails && selectedMember && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <Card className="w-full max-w-6xl bg-background border border-border shadow-xl max-h-[90vh] overflow-y-auto">
+                <CardHeader className="sticky top-0 bg-background border-b z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 bg-accent/20 rounded-full flex items-center justify-center">
+                        <span className="text-lg font-semibold text-accent">
+                          {selectedMember.fullName?.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <CardTitle className="text-2xl">{selectedMember.fullName}</CardTitle>
+                        <CardDescription>{selectedMember.membershipNumber}</CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={closeMemberDetails}
+                      className="rounded-full"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Personal Information */}
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <User className="h-5 w-5 mr-2 text-accent" />
+                          Personal Information
+                        </h3>
+                        <div className="space-y-3 bg-neutral-50 p-4 rounded-lg">
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="flex items-center">
+                              <Mail className="h-4 w-4 mr-3 text-neutral" />
+                              <div>
+                                <p className="text-sm text-neutral">Email</p>
+                                <p className="font-medium">{selectedMember.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <Phone className="h-4 w-4 mr-3 text-neutral" />
+                              <div>
+                                <p className="text-sm text-neutral">Phone Number</p>
+                                <p className="font-medium">{selectedMember.phoneNumber || 'Not provided'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <MapPin className="h-4 w-4 mr-3 text-neutral" />
+                              <div>
+                                <p className="text-sm text-neutral">Address</p>
+                                <p className="font-medium">{selectedMember.address || 'Not provided'}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-3 text-neutral" />
+                              <div>
+                                <p className="text-sm text-neutral">Join Date</p>
+                                <p className="font-medium">{formatDate(selectedMember.$createdAt)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Membership Status */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <CheckCircle className="h-5 w-5 mr-2 text-accent" />
+                          Membership Status
+                        </h3>
+                        <div className="space-y-3 bg-neutral-50 p-4 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-neutral">Current Status</span>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                              selectedMember.status === 'Active' 
+                                ? 'bg-green-100 text-green-800 border border-green-200'
+                                : selectedMember.status === 'Pending'
+                                ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                                : 'bg-red-100 text-red-800 border border-red-200'
+                            }`}>
+                              {selectedMember.status}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-neutral">Registration Fee</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRegistrationStatus(selectedMember.$id).color}`}>
+                              {getRegistrationStatus(selectedMember.$id).status}
+                            </span>
+                          </div>
+                          {getRegistrationStatus(selectedMember.$id).timestamp && (
+                            <div className="text-xs text-neutral">
+                              <span className="font-medium">
+                                {getRegistrationStatus(selectedMember.$id).status === 'Paid' ? 'Confirmed' : 'Submitted'}: 
+                              </span>
+                              <span className="ml-1">{formatDate(getRegistrationStatus(selectedMember.$id).timestamp)}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Financial Information */}
+                    <div className="space-y-6">
+                      {/* Savings Details */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <PiggyBank className="h-5 w-5 mr-2 text-green-600" />
+                          Savings Summary
+                        </h3>
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-green-700">Total Savings</p>
+                              <p className="text-2xl font-bold text-green-800">
+                                ₦{memberSavings[selectedMember.$id]?.totalAmount?.toLocaleString() || '0'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-green-700">Total Deposits</p>
+                              <p className="text-2xl font-bold text-green-800">
+                                {memberSavings[selectedMember.$id]?.totalDeposits || 0}
+                              </p>
+                            </div>
+                          </div>
+                          {memberSavings[selectedMember.$id]?.pendingDeposits > 0 && (
+                            <div className="mt-3 p-2 bg-yellow-100 border border-yellow-200 rounded text-sm">
+                              <span className="text-yellow-800">
+                                {memberSavings[selectedMember.$id]?.pendingDeposits} pending deposit{memberSavings[selectedMember.$id]?.pendingDeposits !== 1 ? 's' : ''} awaiting confirmation
+                              </span>
+                            </div>
+                          )}
+                          {memberSavings[selectedMember.$id]?.totalDeposits > 0 && (
+                            <div className="mt-3">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => downloadMemberSavings(selectedMember)}
+                                className="w-full text-green-600 border-green-300 hover:bg-green-100"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download Savings Report
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Loans Details */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                          Loans Summary
+                        </h3>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-blue-700">Total Borrowed</p>
+                              <p className="text-2xl font-bold text-blue-800">
+                                ₦{memberLoans[selectedMember.$id]?.totalBorrowed?.toLocaleString() || '0'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-blue-700">Outstanding</p>
+                              <p className="text-2xl font-bold text-red-600">
+                                ₦{memberLoans[selectedMember.$id]?.totalOutstanding?.toLocaleString() || '0'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 mt-3">
+                            <div>
+                              <p className="text-sm text-blue-700">Active Loans</p>
+                              <p className="text-lg font-semibold text-blue-800">
+                                {memberLoans[selectedMember.$id]?.activeLoans || 0}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-blue-700">Pending Requests</p>
+                              <p className="text-lg font-semibold text-yellow-600">
+                                {memberLoans[selectedMember.$id]?.pendingRequests || 0}
+                              </p>
+                            </div>
+                          </div>
+                          {memberLoans[selectedMember.$id]?.allRequests?.length > 0 && (
+                            <div className="mt-3">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => downloadMemberLoans(selectedMember)}
+                                className="w-full text-blue-600 border-blue-300 hover:bg-blue-100"
+                              >
+                                <Download className="h-4 w-4 mr-2" />
+                                Download Loans Report
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity */}
+                  <div className="mt-8">
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <Clock className="h-5 w-5 mr-2 text-accent" />
+                      Recent Activity
+                    </h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Recent Savings */}
+                      <div>
+                        <h4 className="font-medium mb-3 text-green-700">Recent Savings Deposits</h4>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {memberSavings[selectedMember.$id]?.allSavings?.slice(0, 5).map((saving: any) => (
+                            <div key={saving.$id} className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded">
+                              <div>
+                                <p className="font-medium text-green-800">₦{saving.amount}</p>
+                                <p className="text-xs text-green-600">{formatDate(saving.$createdAt)}</p>
+                              </div>
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                saving.status === 'Confirmed' 
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {saving.status}
+                              </span>
+                            </div>
+                          )) || <p className="text-neutral text-sm">No savings deposits yet</p>}
+                        </div>
+                      </div>
+
+                      {/* Recent Loans */}
+                      <div>
+                        <h4 className="font-medium mb-3 text-blue-700">Recent Loan Requests</h4>
+                        <div className="space-y-2 max-h-64 overflow-y-auto">
+                          {memberLoans[selectedMember.$id]?.allRequests?.slice(0, 5).map((loan: any) => (
+                            <div key={loan.$id} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded">
+                              <div>
+                                <p className="font-medium text-blue-800">₦{loan.requestedAmount?.toLocaleString()}</p>
+                                <p className="text-xs text-blue-600">{formatDate(loan.$createdAt)}</p>
+                                <p className="text-xs text-neutral truncate max-w-32">{loan.purpose}</p>
+                              </div>
+                              <div className="text-right">
+                                <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                  loan.status === 'Approved' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : loan.status === 'Pending Review'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : loan.status === 'Rejected'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {loan.status}
+                                </span>
+                                {loan.status === 'Approved' && (
+                                  <p className="text-xs text-red-600 mt-1">
+                                    Bal: ₦{loan.currentBalance?.toLocaleString() || '0'}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )) || <p className="text-neutral text-sm">No loan requests yet</p>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  {selectedMember.status === 'Pending' && (
+                    <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <h4 className="font-medium mb-3 text-yellow-800">Member Actions</h4>
+                      <div className="flex space-x-3">
+                        <Button
+                          variant="accent"
+                          size="sm"
+                          onClick={() => {/* Approve member functionality */}}
+                        >
+                          <CheckCircle className="h-4 w-4 mr-2" />
+                          Approve Member
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {/* Reject member functionality */}}
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Reject Member
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </DashboardLayout>
     </ProtectedRoute>

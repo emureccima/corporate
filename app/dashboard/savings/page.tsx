@@ -103,7 +103,7 @@ export default function MemberSavingsPage() {
       ['Date', 'Amount', 'Status', 'Description'].join(','),
       ...filteredPayments.map(payment => [
         formatDate(payment.$createdAt),
-        `$${payment.amount}`,
+        `₦${payment.amount}`,
         payment.status,
         payment.description || 'Savings deposit'
       ].join(','))
@@ -141,7 +141,7 @@ export default function MemberSavingsPage() {
               <p className="text-neutral">Track your savings deposits and total balance</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">${stats.totalAmount.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-green-600">₦{stats.totalAmount.toLocaleString()}</div>
               <div className="text-sm text-neutral">Total Confirmed Savings</div>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function MemberSavingsPage() {
                 <TrendingUp className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.averageDeposit.toFixed(2)}</div>
+                <div className="text-2xl font-bold">₦{stats.averageDeposit.toFixed(2)}</div>
                 <p className="text-xs text-neutral">Per confirmed deposit</p>
               </CardContent>
             </Card>
@@ -280,7 +280,7 @@ export default function MemberSavingsPage() {
                           <PiggyBank className="h-6 w-6 text-green-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold">${payment.amount}</h4>
+                          <h4 className="font-semibold">₦{payment.amount}</h4>
                           <p className="text-sm text-neutral">
                             {payment.description || 'Savings deposit'}
                           </p>

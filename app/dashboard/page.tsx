@@ -105,7 +105,7 @@ export default function DashboardPage() {
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.totalPaid.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{stats.totalPaid.toLocaleString()}</div>
                 <p className="text-xs text-neutral">All confirmed payments</p>
               </CardContent>
             </Card>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {stats.lastPayment ? `$${stats.lastPayment.amount}` : 'None'}
+                  {stats.lastPayment ? `₦${stats.lastPayment.amount}` : 'None'}
                 </div>
                 <p className="text-xs text-neutral">
                   {stats.lastPayment ? formatDate(stats.lastPayment.$createdAt) : 'No payments yet'}
@@ -270,7 +270,7 @@ export default function DashboardPage() {
                           }`} />
                           <div>
                             <p className="font-medium">{payment.paymentType.replace('_', ' ')}</p>
-                            <p className="text-sm text-neutral">${payment.amount}</p>
+                            <p className="text-sm text-neutral">₦{payment.amount}</p>
                           </div>
                         </div>
                         <div className="text-right">

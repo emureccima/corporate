@@ -121,7 +121,7 @@ export default function AdminRegistrationsPage() {
               <p className="text-neutral">Track and manage member registration fee payments</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-accent">${stats.registrationFee}</div>
+              <div className="text-2xl font-bold text-accent">₦{stats.registrationFee}</div>
               <div className="text-sm text-neutral">Current Registration Fee</div>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function AdminRegistrationsPage() {
                 <DollarSign className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.totalAmount.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{stats.totalAmount.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Confirmed payments</p>
               </CardContent>
             </Card>
@@ -178,7 +178,7 @@ export default function AdminRegistrationsPage() {
                 <Clock className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.pendingAmount.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{stats.pendingAmount.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Awaiting confirmation</p>
               </CardContent>
             </Card>
@@ -252,7 +252,7 @@ export default function AdminRegistrationsPage() {
                       
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="text-lg font-bold">${payment.amount}</div>
+                          <div className="text-lg font-bold">₦{payment.amount}</div>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(payment.status)}`}>
                             {payment.status}
                           </span>
@@ -312,7 +312,7 @@ export default function AdminRegistrationsPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-accent">${stats.registrationFee}</div>
+                  <div className="text-2xl font-bold text-accent">₦{stats.registrationFee}</div>
                   <p className="text-sm text-neutral">Current Fee Amount</p>
                 </div>
                 <div className="text-center">
@@ -323,7 +323,7 @@ export default function AdminRegistrationsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600">
-                    ${stats.totalAmount > 0 ? (stats.totalAmount / stats.confirmedRegistrations).toFixed(0) : stats.registrationFee}
+                    ₦{stats.totalAmount > 0 ? (stats.totalAmount / stats.confirmedRegistrations).toFixed(0) : stats.registrationFee}
                   </div>
                   <p className="text-sm text-neutral">Average per Member</p>
                 </div>
@@ -331,7 +331,7 @@ export default function AdminRegistrationsPage() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-neutral">
                   Registration fee is configured via environment variables. 
-                  Current fee: <span className="font-medium">${stats.registrationFee}</span>
+                  Current fee: <span className="font-medium">₦{stats.registrationFee}</span>
                 </p>
               </div>
             </CardContent>

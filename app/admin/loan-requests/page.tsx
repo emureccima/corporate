@@ -173,7 +173,7 @@ export default function AdminLoanRequestsPage() {
               <p className="text-neutral">Review and manage member loan applications</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-blue-600">${stats.totalApprovedAmount.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-blue-600">₦{stats.totalApprovedAmount.toLocaleString()}</div>
               <div className="text-sm text-neutral">Total Approved Amount</div>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function AdminLoanRequestsPage() {
                 <DollarSign className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.pendingAmount.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{stats.pendingAmount.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Under review</p>
               </CardContent>
             </Card>
@@ -298,7 +298,7 @@ export default function AdminLoanRequestsPage() {
                           <div className="space-y-2">
                             <div>
                               <span className="text-sm text-neutral">Requested Amount:</span>
-                              <p className="font-bold text-lg text-blue-600">${request.requestedAmount.toLocaleString()}</p>
+                              <p className="font-bold text-lg text-blue-600">₦{request.requestedAmount.toLocaleString()}</p>
                             </div>
                             <div>
                               <span className="text-sm text-neutral">Repayment Period:</span>
@@ -309,11 +309,11 @@ export default function AdminLoanRequestsPage() {
                           <div className="space-y-2">
                             <div>
                               <span className="text-sm text-neutral">Monthly Income:</span>
-                              <p className="font-medium">${request.monthlyIncome.toLocaleString()}</p>
+                              <p className="font-medium">₦{request.monthlyIncome.toLocaleString()}</p>
                             </div>
                             <div>
                               <span className="text-sm text-neutral">Estimated Monthly Payment:</span>
-                              <p className="font-medium">${calculateMonthlyPayment(request.requestedAmount, request.repaymentPeriod)}</p>
+                              <p className="font-medium">₦{calculateMonthlyPayment(request.requestedAmount, request.repaymentPeriod)}</p>
                             </div>
                           </div>
                           
@@ -330,7 +330,7 @@ export default function AdminLoanRequestsPage() {
                             {request.status === 'Approved' && (
                               <div>
                                 <span className="text-sm text-neutral">Outstanding Balance:</span>
-                                <p className="font-bold text-red-600">${request.currentBalance?.toLocaleString() || '0'}</p>
+                                <p className="font-bold text-red-600">₦{request.currentBalance?.toLocaleString() || '0'}</p>
                               </div>
                             )}
                           </div>
@@ -451,7 +451,7 @@ export default function AdminLoanRequestsPage() {
                     {showApprovalModal.action === 'approve' ? 'Approve' : 'Reject'} Loan Request
                   </CardTitle>
                   <CardDescription>
-                    {showApprovalModal.memberName} - ${showApprovalModal.requestedAmount.toLocaleString()}
+                    {showApprovalModal.memberName} - ₦{showApprovalModal.requestedAmount.toLocaleString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">

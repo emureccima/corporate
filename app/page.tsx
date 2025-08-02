@@ -144,7 +144,7 @@ export default function Home() {
             <div className="relative">
               <div className="aspect-square bg-gradient-to-br from-accent/20 to-accent/5 rounded-2xl flex items-center justify-center">
                 <div className="text-center space-y-4">
-                  <div className="text-4xl font-bold text-accent">$2.5M+</div>
+                  <div className="text-4xl font-bold text-accent">₦2.5M+</div>
                   <div className="text-lg font-medium">Total Member Savings</div>
                   <div className="text-sm text-neutral">Growing every month</div>
                 </div>

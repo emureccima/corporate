@@ -157,7 +157,7 @@ export default function AdminSavingsPage() {
               <p className="text-neutral">Manage member savings deposits and track balances</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-green-600">${stats.totalAmount.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-green-600">₦{stats.totalAmount.toLocaleString()}</div>
               <div className="text-sm text-neutral">Total Savings Confirmed</div>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function AdminSavingsPage() {
                 <DollarSign className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.pendingAmount.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{stats.pendingAmount.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Awaiting confirmation</p>
               </CardContent>
             </Card>
@@ -280,7 +280,7 @@ export default function AdminSavingsPage() {
                       
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="text-lg font-bold">${payment.amount}</div>
+                          <div className="text-lg font-bold">₦{payment.amount}</div>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(payment.status)}`}>
                             {payment.status}
                           </span>

@@ -37,6 +37,7 @@ export default function AdminLoansPage() {
     approvedAmount: '',
     notes: ''
   });
+  const [showLoanDetailsModal, setShowLoanDetailsModal] = useState<any>(null);
 
   useEffect(() => {
     loadLoansData();
@@ -184,6 +185,10 @@ export default function AdminLoansPage() {
     }
   };
 
+  const openLoanDetailsModal = (request: any) => {
+    setShowLoanDetailsModal(request);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'confirmed':
@@ -323,7 +328,7 @@ export default function AdminLoansPage() {
                     <DollarSign className="h-4 w-4 text-purple-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">${stats.pendingAmount.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">₦{stats.pendingAmount.toLocaleString()}</div>
                     <p className="text-xs text-neutral">Under review</p>
                   </CardContent>
                 </Card>
@@ -369,7 +374,7 @@ export default function AdminLoansPage() {
                     <DollarSign className="h-4 w-4 text-purple-500" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">${stats.totalAmount.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">₦{stats.totalAmount.toLocaleString()}</div>
                     <p className="text-xs text-neutral">Total confirmed</p>
                   </CardContent>
                 </Card>
@@ -462,7 +467,7 @@ export default function AdminLoansPage() {
                             <div className="space-y-2">
                               <div>
                                 <span className="text-sm text-neutral">Requested Amount:</span>
-                                <p className="font-bold text-lg text-blue-600">${request.requestedAmount.toLocaleString()}</p>
+                                <p className="font-bold text-lg text-blue-600">₦{request.requestedAmount.toLocaleString()}</p>
                               </div>
                               <div>
                                 <span className="text-sm text-neutral">Repayment Period:</span>
@@ -473,11 +478,11 @@ export default function AdminLoansPage() {
                             <div className="space-y-2">
                               <div>
                                 <span className="text-sm text-neutral">Monthly Income:</span>
-                                <p className="font-medium">${request.monthlyIncome.toLocaleString()}</p>
+                                <p className="font-medium">₦{request.monthlyIncome.toLocaleString()}</p>
                               </div>
                               <div>
                                 <span className="text-sm text-neutral">Estimated Monthly Payment:</span>
-                                <p className="font-medium">${(request.requestedAmount / request.repaymentPeriod).toFixed(2)}</p>
+                                <p className="font-medium">₦{(request.requestedAmount / request.repaymentPeriod).toFixed(2)}</p>
                               </div>
                             </div>
                             
@@ -494,7 +499,7 @@ export default function AdminLoansPage() {
                               {request.status === 'Approved' && (
                                 <div>
                                   <span className="text-sm text-neutral">Outstanding Balance:</span>
-                                  <p className="font-bold text-red-600">${request.currentBalance?.toLocaleString() || '0'}</p>
+                                  <p className="font-bold text-red-600">₦{request.currentBalance?.toLocaleString() || '0'}</p>
                                 </div>
                               )}
                             </div>
@@ -579,7 +584,7 @@ export default function AdminLoansPage() {
                           <Button 
                             size="sm" 
                             variant="ghost"
-                            onClick={() => {/* View full details */}}
+                            onClick={() => openLoanDetailsModal(request)}
                             className="w-full"
                           >
                             <Eye className="h-4 w-4 mr-1" />
@@ -638,7 +643,7 @@ export default function AdminLoansPage() {
                         
                         <div className="flex items-center space-x-4">
                           <div className="text-right">
-                            <div className="text-lg font-bold">${payment.amount}</div>
+                            <div className="text-lg font-bold">₦{payment.amount}</div>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(payment.status)}`}>
                               {payment.status}
                             </span>
@@ -729,7 +734,7 @@ export default function AdminLoansPage() {
                     {showApprovalModal.action === 'approve' ? 'Approve' : 'Reject'} Loan Request
                   </CardTitle>
                   <CardDescription>
-                    {showApprovalModal.memberName} - ${showApprovalModal.requestedAmount.toLocaleString()}
+                    {showApprovalModal.memberName} - ₦{showApprovalModal.requestedAmount.toLocaleString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -785,6 +790,272 @@ export default function AdminLoansPage() {
                     >
                       Cancel
                     </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Loan Details Modal */}
+          {showLoanDetailsModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <Card className="w-full max-w-4xl bg-background border border-border shadow-xl max-h-[90vh] overflow-y-auto">
+                <CardHeader className="sticky top-0 bg-background border-b z-10">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl">Loan Request Details</CardTitle>
+                      <CardDescription>
+                        {showLoanDetailsModal.memberName} - {showLoanDetailsModal.membershipNumber || showLoanDetailsModal.memberId}
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowLoanDetailsModal(null)}
+                      className="rounded-full"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Request Information */}
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <FileText className="h-5 w-5 mr-2 text-accent" />
+                          Request Information
+                        </h3>
+                        <div className="space-y-4 bg-neutral-50 p-4 rounded-lg">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-neutral">Requested Amount</p>
+                              <p className="text-2xl font-bold text-blue-600">
+                                ₦{showLoanDetailsModal.requestedAmount?.toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-neutral">Repayment Period</p>
+                              <p className="text-xl font-semibold">
+                                {showLoanDetailsModal.repaymentPeriod} months
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <p className="text-sm text-neutral">Purpose</p>
+                            <p className="font-medium">{showLoanDetailsModal.purpose}</p>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-neutral">Monthly Income</p>
+                              <p className="font-semibold text-green-600">
+                                ₦{showLoanDetailsModal.monthlyIncome?.toLocaleString()}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-neutral">Est. Monthly Payment</p>
+                              <p className="font-semibold">
+                                ₦{((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)).toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {showLoanDetailsModal.collateral && (
+                            <div>
+                              <p className="text-sm text-neutral">Collateral</p>
+                              <p className="font-medium">{showLoanDetailsModal.collateral}</p>
+                            </div>
+                          )}
+
+                          {showLoanDetailsModal.guarantor && (
+                            <div>
+                              <p className="text-sm text-neutral">Guarantor</p>
+                              <p className="font-medium">{showLoanDetailsModal.guarantor}</p>
+                              {showLoanDetailsModal.guarantorContact && (
+                                <p className="text-sm text-neutral">{showLoanDetailsModal.guarantorContact}</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-neutral">Submitted Date</p>
+                              <p className="font-medium">
+                                {formatDate(showLoanDetailsModal.submittedAt || showLoanDetailsModal.$createdAt)}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-neutral">Status</p>
+                              <span className={`px-3 py-1 rounded-full text-sm font-medium border inline-block ${getStatusColor(showLoanDetailsModal.status)}`}>
+                                {showLoanDetailsModal.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Bank Account Details */}
+                      {(showLoanDetailsModal.bankName || showLoanDetailsModal.accountNumber || showLoanDetailsModal.accountName) && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 flex items-center">
+                            <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                            Disbursement Account
+                          </h3>
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <div className="space-y-3">
+                              {showLoanDetailsModal.bankName && (
+                                <div>
+                                  <p className="text-sm text-green-700">Bank Name</p>
+                                  <p className="font-bold text-green-800">{showLoanDetailsModal.bankName}</p>
+                                </div>
+                              )}
+                              {showLoanDetailsModal.accountNumber && (
+                                <div>
+                                  <p className="text-sm text-green-700">Account Number</p>
+                                  <p className="font-bold text-green-800 font-mono text-lg">
+                                    {showLoanDetailsModal.accountNumber}
+                                  </p>
+                                </div>
+                              )}
+                              {showLoanDetailsModal.accountName && (
+                                <div>
+                                  <p className="text-sm text-green-700">Account Name</p>
+                                  <p className="font-bold text-green-800">{showLoanDetailsModal.accountName}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Approval Information */}
+                    <div className="space-y-6">
+                      {showLoanDetailsModal.status === 'Approved' && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 flex items-center">
+                            <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                            Approval Details
+                          </h3>
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-sm text-green-700">Approved Amount</p>
+                                <p className="text-2xl font-bold text-green-800">
+                                  ₦{showLoanDetailsModal.approvedAmount?.toLocaleString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-green-700">Outstanding Balance</p>
+                                <p className="text-2xl font-bold text-red-600">
+                                  ₦{(showLoanDetailsModal.currentBalance || 0).toLocaleString()}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <p className="text-sm text-green-700">Approval Date</p>
+                              <p className="font-medium">
+                                {showLoanDetailsModal.approvedAt ? formatDate(showLoanDetailsModal.approvedAt) : 'N/A'}
+                              </p>
+                            </div>
+                            
+                            {showLoanDetailsModal.lastRepaymentDate && (
+                              <div>
+                                <p className="text-sm text-green-700">Last Repayment</p>
+                                <p className="font-medium">{formatDate(showLoanDetailsModal.lastRepaymentDate)}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Admin Notes */}
+                      {showLoanDetailsModal.adminNotes && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4 flex items-center">
+                            <FileText className="h-5 w-5 mr-2 text-accent" />
+                            Admin Notes
+                          </h3>
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p className="font-medium text-blue-800">{showLoanDetailsModal.adminNotes}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Risk Assessment */}
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <TrendingUp className="h-5 w-5 mr-2 text-accent" />
+                          Risk Assessment
+                        </h3>
+                        <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4 space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <p className="text-sm text-neutral">Debt-to-Income Ratio</p>
+                              <p className="font-bold text-lg">
+                                {((((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)) / (showLoanDetailsModal.monthlyIncome || 1)) * 100).toFixed(1)}%
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-neutral">Risk Level</p>
+                              <span className={`px-2 py-1 rounded text-sm font-medium ${
+                                ((((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)) / (showLoanDetailsModal.monthlyIncome || 1)) * 100) > 30
+                                  ? 'bg-red-100 text-red-800'
+                                  : ((((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)) / (showLoanDetailsModal.monthlyIncome || 1)) * 100) > 20
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {((((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)) / (showLoanDetailsModal.monthlyIncome || 1)) * 100) > 30 ? 'High' : 
+                                 ((((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)) / (showLoanDetailsModal.monthlyIncome || 1)) * 100) > 20 ? 'Medium' : 'Low'}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-sm text-neutral">
+                            <p className="font-medium">Assessment Notes:</p>
+                            <ul className="list-disc list-inside mt-1 space-y-1">
+                              <li>Monthly payment: ₦{((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)).toFixed(2)}</li>
+                              <li>Payment represents {((((showLoanDetailsModal.requestedAmount || 0) / (showLoanDetailsModal.repaymentPeriod || 1)) / (showLoanDetailsModal.monthlyIncome || 1)) * 100).toFixed(1)}% of monthly income</li>
+                              <li>{showLoanDetailsModal.guarantor ? 'Has guarantor' : 'No guarantor provided'}</li>
+                              <li>{showLoanDetailsModal.collateral ? 'Collateral provided' : 'No collateral'}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      {showLoanDetailsModal.status === 'Pending Review' && (
+                        <div className="space-y-3">
+                          <Button
+                            onClick={() => {
+                              openApprovalModal(showLoanDetailsModal, 'approve');
+                              setShowLoanDetailsModal(null);
+                            }}
+                            variant="accent"
+                            className="w-full"
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Approve This Loan
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              openApprovalModal(showLoanDetailsModal, 'reject');
+                              setShowLoanDetailsModal(null);
+                            }}
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject This Loan
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

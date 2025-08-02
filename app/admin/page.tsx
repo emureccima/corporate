@@ -107,7 +107,7 @@ export default function AdminPage() {
                 <DollarSign className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${stats.totalAmount.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{stats.totalAmount.toLocaleString()}</div>
                 <p className="text-xs text-neutral">All confirmed payments</p>
               </CardContent>
             </Card>
@@ -159,7 +159,7 @@ export default function AdminPage() {
               <CardContent className="space-y-3">
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    ${stats.totalAmount.toLocaleString()}
+                    ₦{stats.totalAmount.toLocaleString()}
                   </div>
                   <p className="text-sm text-green-600">Total Revenue</p>
                 </div>
@@ -211,7 +211,7 @@ export default function AdminPage() {
                         <div className="flex-1">
                           <p className="font-medium">{payment.memberName}</p>
                           <p className="text-sm text-neutral">
-                            {payment.paymentType.replace('_', ' ')} - ${payment.amount}
+                            {payment.paymentType.replace('_', ' ')} - ₦{payment.amount}
                           </p>
                         </div>
                         <div className="text-right">

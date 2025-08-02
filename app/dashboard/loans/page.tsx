@@ -133,7 +133,7 @@ export default function MemberLoansPage() {
       ...loanSummary.loanRequests.map((loan: any) => [
         'Loan Request',
         formatDate(loan.$createdAt),
-        `$${loan.requestedAmount}`,
+        `₦${loan.requestedAmount}`,
         loan.status,
         `Purpose: ${loan.purpose}`
       ].join(',')),
@@ -141,7 +141,7 @@ export default function MemberLoansPage() {
       ...loanSummary.repayments.map((repayment: any) => [
         'Repayment',
         formatDate(repayment.$createdAt),
-        `$${repayment.amount}`,
+        `₦${repayment.amount}`,
         repayment.status,
         repayment.description || 'Loan repayment'
       ].join(','))
@@ -180,7 +180,7 @@ export default function MemberLoansPage() {
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-red-600">
-                ${loanSummary.totalOutstanding.toLocaleString()}
+                ₦{loanSummary.totalOutstanding.toLocaleString()}
               </div>
               <div className="text-sm text-neutral">Outstanding Balance</div>
             </div>
@@ -213,7 +213,7 @@ export default function MemberLoansPage() {
                 <AlertTriangle className="h-4 w-4 text-red-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${loanSummary.totalOutstanding.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{loanSummary.totalOutstanding.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Amount owed</p>
               </CardContent>
             </Card>
@@ -224,7 +224,7 @@ export default function MemberLoansPage() {
                 <CreditCard className="h-4 w-4 text-blue-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${loanSummary.totalBorrowed.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{loanSummary.totalBorrowed.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Lifetime borrowing</p>
               </CardContent>
             </Card>
@@ -235,7 +235,7 @@ export default function MemberLoansPage() {
                 <CheckCircle className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${loanSummary.totalRepaid.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{loanSummary.totalRepaid.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Confirmed payments</p>
               </CardContent>
             </Card>
@@ -263,7 +263,7 @@ export default function MemberLoansPage() {
                 <form onSubmit={handleSubmitLoanRequest} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">Requested Amount ($)</label>
+                      <label className="block text-sm font-medium mb-1">Requested Amount (₦)</label>
                       <Input
                         type="number"
                         name="requestedAmount"
@@ -291,7 +291,7 @@ export default function MemberLoansPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Monthly Income ($)</label>
+                      <label className="block text-sm font-medium mb-1">Monthly Income (₦)</label>
                       <Input
                         type="number"
                         name="monthlyIncome"
@@ -451,7 +451,7 @@ export default function MemberLoansPage() {
                           <DollarSign className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold">${loan.requestedAmount?.toLocaleString()}</h4>
+                          <h4 className="font-semibold">₦{loan.requestedAmount?.toLocaleString()}</h4>
                           <p className="text-sm text-neutral">{loan.purpose}</p>
                           <p className="text-xs text-neutral flex items-center">
                             <Calendar className="h-3 w-3 mr-1" />
@@ -459,7 +459,7 @@ export default function MemberLoansPage() {
                           </p>
                           {loan.status === 'Approved' && (
                             <p className="text-xs text-green-600">
-                              Balance: ${loan.currentBalance?.toLocaleString() || '0'}
+                              Balance: ₦{loan.currentBalance?.toLocaleString() || '0'}
                             </p>
                           )}
                         </div>
@@ -510,7 +510,7 @@ export default function MemberLoansPage() {
                           <TrendingDown className="h-6 w-6 text-green-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold">${repayment.amount}</h4>
+                          <h4 className="font-semibold">₦{repayment.amount}</h4>
                           <p className="text-sm text-neutral">
                             {repayment.description || 'Loan repayment'}
                           </p>

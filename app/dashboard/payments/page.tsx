@@ -166,7 +166,7 @@ export default function PaymentsPage() {
         paymentMade,
         confirmed: false,
         status: 'Pending',
-        description: `${selectedPaymentType.replace('_', ' ')} payment of $${amount}`,
+        description: `${selectedPaymentType.replace('_', ' ')} payment of ₦${amount}`,
       };
 
       // Add loan request ID for loan repayments
@@ -174,7 +174,7 @@ export default function PaymentsPage() {
         paymentData.loanRequestId = selectedLoanId;
         const selectedLoan = activeLoans.find(loan => loan.$id === selectedLoanId);
         if (selectedLoan) {
-          paymentData.description = `Loan repayment of $${amount} for loan of $${selectedLoan.approvedAmount} (Balance: $${selectedLoan.currentBalance})`;
+          paymentData.description = `Loan repayment of ₦${amount} for loan of ₦${selectedLoan.approvedAmount} (Balance: ₦${selectedLoan.currentBalance})`;
         }
       }
 
@@ -360,7 +360,7 @@ export default function PaymentsPage() {
                     </div>
                     {type.amount && (
                       <div className="text-lg font-semibold text-accent">
-                        ${type.amount}
+                        ₦{type.amount}
                       </div>
                     )}
                   </div>
@@ -405,12 +405,12 @@ export default function PaymentsPage() {
                         >
                           <div className="flex justify-between items-start">
                             <div>
-                              <p className="font-medium">Loan Amount: ${loan.approvedAmount?.toLocaleString()}</p>
+                              <p className="font-medium">Loan Amount: ₦{loan.approvedAmount?.toLocaleString()}</p>
                               <p className="text-sm text-neutral">Purpose: {loan.purpose}</p>
                               <p className="text-sm text-neutral">Approved: {new Date(loan.approvedAt).toLocaleDateString()}</p>
                             </div>
                             <div className="text-right">
-                              <p className="font-bold text-red-600">${(loan.currentBalance || 0).toLocaleString()}</p>
+                              <p className="font-bold text-red-600">₦{(loan.currentBalance || 0).toLocaleString()}</p>
                               <p className="text-xs text-neutral">Outstanding</p>
                             </div>
                           </div>

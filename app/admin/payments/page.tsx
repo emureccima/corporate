@@ -243,7 +243,7 @@ export default function AdminPaymentsPage() {
                           <div className="space-y-2">
                             <div className="flex items-center">
                               <DollarSign className="h-4 w-4 mr-2 text-accent" />
-                              <span className="font-semibold text-lg">${payment.amount}</span>
+                              <span className="font-semibold text-lg">₦{payment.amount}</span>
                             </div>
                             <div>
                               <span className="text-sm text-neutral">Payment Type:</span>

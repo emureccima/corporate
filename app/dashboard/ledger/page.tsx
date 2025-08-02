@@ -166,7 +166,7 @@ export default function MemberLedgerPage() {
                 <DollarSign className="h-4 w-4 text-green-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${totals.totalConfirmed.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{totals.totalConfirmed.toLocaleString()}</div>
                 <p className="text-xs text-neutral">{totals.confirmedCount} payments</p>
               </CardContent>
             </Card>
@@ -177,7 +177,7 @@ export default function MemberLedgerPage() {
                 <Clock className="h-4 w-4 text-yellow-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${totals.totalPending.toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{totals.totalPending.toLocaleString()}</div>
                 <p className="text-xs text-neutral">Awaiting confirmation</p>
               </CardContent>
             </Card>
@@ -199,7 +199,7 @@ export default function MemberLedgerPage() {
                 <CheckCircle className="h-4 w-4 text-purple-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${(totals.totalConfirmed + totals.totalPending).toLocaleString()}</div>
+                <div className="text-2xl font-bold">₦{(totals.totalConfirmed + totals.totalPending).toLocaleString()}</div>
                 <p className="text-xs text-neutral">Confirmed + Pending</p>
               </CardContent>
             </Card>
@@ -284,7 +284,7 @@ export default function MemberLedgerPage() {
                       </div>
                       
                       <div className="text-right">
-                        <div className="text-lg font-semibold">${payment.amount}</div>
+                        <div className="text-lg font-semibold">₦{payment.amount}</div>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(payment.status)}`}>
                           {payment.status}
                         </span>
