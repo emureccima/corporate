@@ -15,9 +15,14 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Emure Chambers of Commerce, Mines, Industries and Agriculture (EMURECCIMA)",
+  title: "Emure Chambers of Commerce, Mines, Industries and Agriculture (EMURECCIMA)",
   description: "Building a stronger community through Chamber values and mutual support. Manage memberships, savings, loans, and community events.",
   keywords: "Chamber, society, membership, savings, loans, community, events",
+  icons: {
+    icon: '/emurelogo.jpg',
+    shortcut: '/emurelogo.jpg',
+    apple: '/emurelogo.jpg',
+  },
 };
 
 export default function RootLayout({
