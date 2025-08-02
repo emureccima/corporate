@@ -377,7 +377,7 @@ export const savingsService = {
 
 // Loans Services
 export const loansService = {
-  // Get all loan payments
+  // Get all loan payments (repayments)
   async getAllLoanPayments() {
     try {
       const result = await databases.listDocuments(
@@ -392,7 +392,7 @@ export const loansService = {
     }
   },
 
-  // Get member loan payments
+  // Get member loan payments (repayments)
   async getMemberLoanPayments(memberId: string) {
     try {
       const result = await databases.listDocuments(
@@ -444,9 +444,17 @@ export const loansService = {
     }
   },
 
-  // Confirm loan repayment
+  // Confirm loan repayment and update loan balance
   async confirmLoanPayment(paymentId: string) {
     try {
+      // Get the payment details first
+      const payment = await databases.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.loansCollectionId,
+        paymentId
+      );
+
+      // Update the payment status
       const updatedPayment = await databases.updateDocument(
         appwriteConfig.databaseId,
         appwriteConfig.loansCollectionId,
@@ -457,10 +465,189 @@ export const loansService = {
           confirmedAt: new Date().toISOString()
         }
       );
+
+      // Update the corresponding loan request balance if it exists
+      if (payment.loanRequestId) {
+        try {
+          const loanRequest = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.loanRequestsCollectionId,
+            payment.loanRequestId
+          );
+          
+          const currentBalance = loanRequest.currentBalance || loanRequest.approvedAmount;
+          const newBalance = currentBalance - payment.amount;
+          
+          await databases.updateDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.loanRequestsCollectionId,
+            payment.loanRequestId,
+            {
+              currentBalance: Math.max(0, newBalance), // Ensure balance doesn't go negative
+              lastRepaymentDate: new Date().toISOString(),
+              status: newBalance <= 0 ? 'Fully Repaid' : loanRequest.status
+            }
+          );
+        } catch (loanUpdateError) {
+          console.error('Error updating loan balance:', loanUpdateError);
+          // Payment confirmation still succeeded even if balance update failed
+        }
+      }
+
       return updatedPayment;
     } catch (error) {
       console.error('Error confirming loan payment:', error);
       throw error;
+    }
+  },
+
+  // Get all loan requests
+  async getAllLoanRequests() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.loanRequestsCollectionId,
+        [Query.orderDesc('$createdAt')]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching loan requests:', error);
+      return [];
+    }
+  },
+
+  // Get member loan requests
+  async getMemberLoanRequests(memberId: string) {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.loanRequestsCollectionId,
+        [
+          Query.equal('memberId', memberId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching member loan requests:', error);
+      return [];
+    }
+  },
+
+  // Submit loan request
+  async submitLoanRequest(loanData: {
+    memberId: string;
+    memberName: string;
+    requestedAmount: number;
+    purpose: string;
+    repaymentPeriod: number;
+    monthlyIncome: number;
+    collateral?: string;
+    guarantor?: string;
+    guarantorContact?: string;
+    bankName: string;
+    accountNumber: string;
+    accountName: string;
+  }) {
+    try {
+      const loanRequest = await databases.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.loanRequestsCollectionId,
+        'unique()',
+        {
+          ...loanData,
+          status: 'Pending Review',
+          submittedAt: new Date().toISOString(),
+          currentBalance: 0,
+          approvedAmount: 0
+        }
+      );
+      return loanRequest;
+    } catch (error) {
+      console.error('Error submitting loan request:', error);
+      throw error;
+    }
+  },
+
+  // Approve loan request
+  async approveLoanRequest(loanRequestId: string, approvedAmount: number, notes?: string) {
+    try {
+      const updatedRequest = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.loanRequestsCollectionId,
+        loanRequestId,
+        {
+          status: 'Approved',
+          approvedAmount,
+          currentBalance: approvedAmount,
+          approvedAt: new Date().toISOString(),
+          adminNotes: notes || ''
+        }
+      );
+      return updatedRequest;
+    } catch (error) {
+      console.error('Error approving loan request:', error);
+      throw error;
+    }
+  },
+
+  // Reject loan request
+  async rejectLoanRequest(loanRequestId: string, notes?: string) {
+    try {
+      const updatedRequest = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.loanRequestsCollectionId,
+        loanRequestId,
+        {
+          status: 'Rejected',
+          rejectedAt: new Date().toISOString(),
+          adminNotes: notes || ''
+        }
+      );
+      return updatedRequest;
+    } catch (error) {
+      console.error('Error rejecting loan request:', error);
+      throw error;
+    }
+  },
+
+  // Get member loan summary (active loans and total debt)
+  async getMemberLoanSummary(memberId: string) {
+    try {
+      const [loanRequests, repayments] = await Promise.all([
+        this.getMemberLoanRequests(memberId),
+        this.getMemberLoanPayments(memberId)
+      ]);
+
+      const approvedLoans = loanRequests.filter(loan => loan.status === 'Approved' || loan.status === 'Fully Repaid');
+      const activeLoans = loanRequests.filter(loan => loan.status === 'Approved');
+      const totalBorrowed = approvedLoans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0);
+      const totalOutstanding = activeLoans.reduce((sum, loan) => sum + (loan.currentBalance || 0), 0);
+      const totalRepaid = repayments.filter(payment => payment.status === 'Confirmed')
+                                   .reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+      return {
+        totalBorrowed,
+        totalOutstanding,
+        totalRepaid,
+        activeLoans: activeLoans.length,
+        totalLoans: approvedLoans.length,
+        pendingRequests: loanRequests.filter(loan => loan.status === 'Pending Review').length,
+        loanRequests,
+        repayments
+      };
+    } catch (error) {
+      console.error('Error fetching member loan summary:', error);
+      return {
+        totalBorrowed: 0,
+        totalOutstanding: 0,
+        totalRepaid: 0,
+        activeLoans: 0,
+        totalLoans: 0,
+        pendingRequests: 0,
+        loanRequests: [],
+        repayments: []
+      };
     }
   }
 };

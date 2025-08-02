@@ -111,7 +111,7 @@ This document contains all the collections and attributes you need to create in 
 | `description` | String | 500 | ❌ | - | ❌ |
 | `proofFileId` | String | 100 | ❌ | - | ❌ |
 | `proofFileName` | String | 200 | ❌ | - | ❌ |
-| `loanId` | String | 50 | ❌ | - | ❌ |
+| `loanRequestId` | String | 50 | ❌ | - | ❌ |
 | `principalAmount` | Float | - | ❌ | - | ❌ |
 | `interestAmount` | Float | - | ❌ | - | ❌ |
 
@@ -121,12 +121,46 @@ This document contains all the collections and attributes you need to create in 
 **Indexes:**
 - `memberId`
 - `status`
-- `loanId`
+- `loanRequestId`
 - `$createdAt`
 
 ---
 
-### 5. **Payments Collection (Registration & General Payments)**
+### 5. **Loan Requests Collection**
+**Collection ID:** `loan_requests` (create new)
+
+| Attribute Name | Type | Size | Required | Default | Array |
+|---|---|---|---|---|---|
+| `memberId` | String | 50 | ✅ | - | ❌ |
+| `memberName` | String | 100 | ✅ | - | ❌ |
+| `requestedAmount` | Float | - | ✅ | - | ❌ |
+| `purpose` | String | 1000 | ✅ | - | ❌ |
+| `repaymentPeriod` | Integer | - | ✅ | - | ❌ |
+| `monthlyIncome` | Float | - | ✅ | - | ❌ |
+| `status` | Enum | - | ✅ | "Pending Review" | ❌ |
+| `submittedAt` | DateTime | - | ✅ | - | ❌ |
+| `currentBalance` | Float | - | ✅ | 0 | ❌ |
+| `approvedAmount` | Float | - | ✅ | 0 | ❌ |
+| `collateral` | String | 500 | ❌ | - | ❌ |
+| `guarantor` | String | 100 | ❌ | - | ❌ |
+| `guarantorContact` | String | 100 | ❌ | - | ❌ |
+| `approvedAt` | DateTime | - | ❌ | - | ❌ |
+| `rejectedAt` | DateTime | - | ❌ | - | ❌ |
+| `adminNotes` | String | 1000 | ❌ | - | ❌ |
+| `lastRepaymentDate` | DateTime | - | ❌ | - | ❌ |
+
+**Enum Values:**
+- `status`: ["Pending Review", "Approved", "Rejected", "Fully Repaid"]
+
+**Indexes:**
+- `memberId`
+- `status`
+- `submittedAt`
+- `$createdAt`
+
+---
+
+### 6. **Payments Collection (Registration & General Payments)**
 **Collection ID:** `688c6f87003a70de3e6c` (already created)
 
 | Attribute Name | Type | Size | Required | Default | Array |
@@ -285,6 +319,7 @@ NEXT_PUBLIC_APPWRITE_MEMBERS_COLLECTION_ID=688c6c9e000a114ab654
 NEXT_PUBLIC_APPWRITE_EVENTS_COLLECTION_ID=events
 NEXT_PUBLIC_APPWRITE_SAVINGS_COLLECTION_ID=savings  
 NEXT_PUBLIC_APPWRITE_LOANS_COLLECTION_ID=loans
+NEXT_PUBLIC_APPWRITE_LOAN_REQUESTS_COLLECTION_ID=loan_requests
 NEXT_PUBLIC_APPWRITE_PAYMENTS_COLLECTION_ID=688c6f87003a70de3e6c
 NEXT_PUBLIC_APPWRITE_GALLERY_COLLECTION_ID=gallery
 NEXT_PUBLIC_APPWRITE_NOTIFICATIONS_COLLECTION_ID=notifications
@@ -298,6 +333,7 @@ NEXT_PUBLIC_APPWRITE_STORAGE_ID=688ce0f4003dc5cb8eb6
 - [ ] Create Events collection with all attributes
 - [ ] Create Savings collection with all attributes (for savings payments)
 - [ ] Create Loans collection with all attributes (for loan repayment payments)
+- [ ] Create Loan Requests collection with all attributes (for loan applications)
 - [ ] Create Gallery collection with all attributes
 - [ ] Create Notifications collection with all attributes
 - [ ] Set up proper permissions for each collection

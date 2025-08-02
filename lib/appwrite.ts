@@ -17,6 +17,7 @@ export const appwriteConfig = {
   eventsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_EVENTS_COLLECTION_ID!,
   savingsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_SAVINGS_COLLECTION_ID!,
   loansCollectionId: process.env.NEXT_PUBLIC_APPWRITE_LOANS_COLLECTION_ID!,
+  loanRequestsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_LOAN_REQUESTS_COLLECTION_ID!,
   paymentsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_PAYMENTS_COLLECTION_ID!,
   storageId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_ID!,
 };

@@ -4,16 +4,18 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Users, Search, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Search, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, PiggyBank, Download, Eye, CreditCard } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { memberService, registrationService } from '@/lib/services';
+import { memberService, registrationService, savingsService, loansService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminMembersPage() {
   const [members, setMembers] = useState<any[]>([]);
   const [filteredMembers, setFilteredMembers] = useState<any[]>([]);
   const [registrationPayments, setRegistrationPayments] = useState<any[]>([]);
+  const [memberSavings, setMemberSavings] = useState<{[key: string]: any}>({});
+  const [memberLoans, setMemberLoans] = useState<{[key: string]: any}>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,13 +60,51 @@ export default function AdminMembersPage() {
         setLoading(true);
       }
       
-      const [memberData, registrationData] = await Promise.all([
+      const [memberData, registrationData, allSavings, allLoanRequests] = await Promise.all([
         memberService.getAllMembers(),
-        registrationService.getRegistrationPayments()
+        registrationService.getRegistrationPayments(),
+        savingsService.getAllSavingsPayments(),
+        loansService.getAllLoanRequests()
       ]);
+      
+      // Calculate savings totals for each member
+      const savingsMap: {[key: string]: any} = {};
+      const loansMap: {[key: string]: any} = {};
+      
+      memberData.forEach(member => {
+        // Savings data
+        const memberSavingsData = allSavings.filter(saving => saving.memberId === member.$id);
+        const confirmedSavings = memberSavingsData.filter(s => s.status === 'Confirmed');
+        const totalSavings = confirmedSavings.reduce((sum, saving) => sum + (saving.amount || 0), 0);
+        const pendingSavings = memberSavingsData.filter(s => s.status === 'Pending').length;
+        
+        savingsMap[member.$id] = {
+          totalAmount: totalSavings,
+          totalDeposits: confirmedSavings.length,
+          pendingDeposits: pendingSavings,
+          allSavings: memberSavingsData
+        };
+        
+        // Loans data
+        const memberLoanRequests = allLoanRequests.filter(loan => loan.memberId === member.$id);
+        const approvedLoans = memberLoanRequests.filter(loan => loan.status === 'Approved');
+        const totalBorrowed = approvedLoans.reduce((sum, loan) => sum + (loan.approvedAmount || 0), 0);
+        const totalOutstanding = approvedLoans.reduce((sum, loan) => sum + (loan.currentBalance || 0), 0);
+        const pendingRequests = memberLoanRequests.filter(loan => loan.status === 'Pending Review').length;
+        
+        loansMap[member.$id] = {
+          totalBorrowed,
+          totalOutstanding,
+          activeLoans: approvedLoans.length,
+          pendingRequests,
+          allRequests: memberLoanRequests
+        };
+      });
       
       setMembers(memberData);
       setRegistrationPayments(registrationData);
+      setMemberSavings(savingsMap);
+      setMemberLoans(loansMap);
       setFilteredMembers(memberData);
     } catch (error) {
       console.error('Error loading members:', error);
@@ -79,6 +119,55 @@ export default function AdminMembersPage() {
 
   const handleRefresh = () => {
     loadMembers(true);
+  };
+
+  // Download member savings report
+  const downloadMemberSavings = (member: any) => {
+    const memberSavingsData = memberSavings[member.$id]?.allSavings || [];
+    
+    const csvContent = [
+      ['Date', 'Amount', 'Status', 'Description', 'Confirmed Date'].join(','),
+      ...memberSavingsData.map((saving: any) => [
+        formatDate(saving.$createdAt),
+        `$${saving.amount}`,
+        saving.status,
+        saving.description || 'Savings deposit',
+        saving.confirmedAt ? formatDate(saving.confirmedAt) : 'N/A'
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${member.fullName}_savings_report_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  // Download member loans report
+  const downloadMemberLoans = (member: any) => {
+    const memberLoanData = memberLoans[member.$id]?.allRequests || [];
+    
+    const csvContent = [
+      ['Date', 'Requested Amount', 'Approved Amount', 'Outstanding Balance', 'Status', 'Purpose'].join(','),
+      ...memberLoanData.map((loan: any) => [
+        formatDate(loan.$createdAt),
+        `$${loan.requestedAmount}`,
+        `$${loan.approvedAmount || 0}`,
+        `$${loan.currentBalance || 0}`,
+        loan.status,
+        loan.purpose || 'N/A'
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${member.fullName}_loans_report_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
   };
 
   // Get registration fee status for a member
@@ -230,6 +319,51 @@ export default function AdminMembersPage() {
                             <Calendar className="h-4 w-4 mr-2" />
                             <span>Joined {formatDate(member.$createdAt)}</span>
                           </div>
+                          
+                          {/* Financial Summary */}
+                          <div className="mt-3 space-y-2">
+                            {/* Savings Summary */}
+                            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <PiggyBank className="h-4 w-4 text-green-600 mr-2" />
+                                  <span className="text-sm font-medium text-green-800">Total Savings</span>
+                                </div>
+                                <span className="text-lg font-bold text-green-700">
+                                  ${memberSavings[member.$id]?.totalAmount?.toLocaleString() || '0'}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between mt-1 text-xs text-green-700">
+                                <span>{memberSavings[member.$id]?.totalDeposits || 0} confirmed deposits</span>
+                                {memberSavings[member.$id]?.pendingDeposits > 0 && (
+                                  <span className="text-yellow-600">
+                                    {memberSavings[member.$id]?.pendingDeposits} pending
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Loans Summary */}
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <CreditCard className="h-4 w-4 text-blue-600 mr-2" />
+                                  <span className="text-sm font-medium text-blue-800">Outstanding Loans</span>
+                                </div>
+                                <span className="text-lg font-bold text-red-600">
+                                  ${memberLoans[member.$id]?.totalOutstanding?.toLocaleString() || '0'}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between mt-1 text-xs text-blue-700">
+                                <span>{memberLoans[member.$id]?.activeLoans || 0} active loans</span>
+                                {memberLoans[member.$id]?.pendingRequests > 0 && (
+                                  <span className="text-yellow-600">
+                                    {memberLoans[member.$id]?.pendingRequests} pending requests
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       
@@ -256,34 +390,63 @@ export default function AdminMembersPage() {
                           </div>
                         </div>
                         
-                        <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {/* View details functionality */}}
-                          >
-                            View Details
-                          </Button>
-                          {member.status === 'Pending' && (
-                            <>
-                              <Button 
-                                size="sm" 
-                                variant="accent"
-                                onClick={() => {/* Approve member functionality */}}
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {/* View details functionality */}}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                            {member.status === 'Pending' && (
+                              <>
+                                <Button 
+                                  size="sm" 
+                                  variant="accent"
+                                  onClick={() => {/* Approve member functionality */}}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                  Approve
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => {/* Reject member functionality */}}
+                                >
+                                  <XCircle className="h-4 w-4 mr-1" />
+                                  Reject
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                          
+                          {/* Financial Reports */}
+                          <div className="flex flex-col space-y-1">
+                            {memberSavings[member.$id]?.totalDeposits > 0 && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => downloadMemberSavings(member)}
+                                className="text-green-600 hover:text-green-700 hover:bg-green-50 text-xs"
                               >
-                                <CheckCircle className="h-4 w-4 mr-1" />
-                                Approve
+                                <Download className="h-3 w-3 mr-1" />
+                                Savings Report
                               </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => {/* Reject member functionality */}}
+                            )}
+                            {memberLoans[member.$id]?.allRequests?.length > 0 && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => downloadMemberLoans(member)}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
                               >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
+                                <Download className="h-3 w-3 mr-1" />
+                                Loans Report
                               </Button>
-                            </>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { DollarSign, CreditCard, Calendar, TrendingUp, Plus, CheckCircle, AlertCircle } from 'lucide-react';
+import { DollarSign, CreditCard, Calendar, TrendingUp, Plus, CheckCircle, AlertCircle, PiggyBank } from 'lucide-react';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
@@ -149,7 +149,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -173,6 +173,25 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
+                  <PiggyBank className="h-5 w-5 mr-2 text-green-600" />
+                  My Savings
+                </CardTitle>
+                <CardDescription>
+                  Track your savings deposits and total balance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/dashboard/savings">
+                  <Button variant="outline" className="w-full">
+                    View Savings
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
                   <TrendingUp className="h-5 w-5 mr-2 text-accent" />
                   Payment History
                 </CardTitle>
@@ -184,6 +203,25 @@ export default function DashboardPage() {
                 <Link href="/dashboard/ledger">
                   <Button variant="outline" className="w-full">
                     View History
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="h-5 w-5 mr-2 text-blue-600" />
+                  My Loans
+                </CardTitle>
+                <CardDescription>
+                  Request loans and track your repayments
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href="/dashboard/loans">
+                  <Button variant="outline" className="w-full">
+                    View Loans
                   </Button>
                 </Link>
               </CardContent>

@@ -47,6 +47,8 @@ export function Sidebar({ userRole }: SidebarProps) {
   const memberNavigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'My Payments', href: '/dashboard/payments', icon: CreditCard },
+    { name: 'My Savings', href: '/dashboard/savings', icon: PiggyBank },
+    { name: 'My Loans', href: '/dashboard/loans', icon: DollarSign },
     { name: 'My Ledger', href: '/dashboard/ledger', icon: TrendingUp },
     { name: 'Events', href: '/events', icon: Calendar },
     { name: 'Gallery', href: '/gallery', icon: Camera },

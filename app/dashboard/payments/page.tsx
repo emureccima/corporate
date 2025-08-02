@@ -9,7 +9,7 @@ import { CreditCard, CheckCircle, AlertCircle, Copy, Upload, X } from 'lucide-re
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { databases, appwriteConfig, storage } from '@/lib/appwrite';
-import { registrationService } from '@/lib/services';
+import { registrationService, loansService } from '@/lib/services';
 import { ID } from 'appwrite';
 
 export default function PaymentsPage() {
@@ -24,6 +24,8 @@ export default function PaymentsPage() {
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
+  const [activeLoans, setActiveLoans] = useState<any[]>([]);
+  const [selectedLoanId, setSelectedLoanId] = useState<string>('');
 
   // Bank details (to be provided by you)
   const bankDetails = {
@@ -34,28 +36,43 @@ export default function PaymentsPage() {
 
   const registrationFee = parseFloat(process.env.NEXT_PUBLIC_REGISTRATION_FEE || '50');
 
-  // Check if member has confirmed registration payment
+  // Load member data and active loans
   useEffect(() => {
-    const checkRegistrationStatus = async () => {
+    const loadMemberData = async () => {
       if (!user?.memberId) return;
       
       try {
-        const confirmedRegistrations = await registrationService.getConfirmedRegistrationPayments();
+        const [confirmedRegistrations, loanSummary] = await Promise.all([
+          registrationService.getConfirmedRegistrationPayments(),
+          loansService.getMemberLoanSummary(user.memberId)
+        ]);
+        
         const hasConfirmed = confirmedRegistrations.some(payment => payment.memberId === user.memberId);
         setHasConfirmedRegistration(hasConfirmed);
+        
+        // Get active loans (approved loans with outstanding balance)
+        const activeLoansData = loanSummary.loanRequests.filter(loan => 
+          loan.status === 'Approved' && (loan.currentBalance || 0) > 0
+        );
+        setActiveLoans(activeLoansData);
+        
+        // Auto-select first active loan if there's only one
+        if (activeLoansData.length === 1) {
+          setSelectedLoanId(activeLoansData[0].$id);
+        }
         
         // If registration is confirmed, default to Savings
         if (hasConfirmed && selectedPaymentType === 'Registration') {
           setSelectedPaymentType('Savings');
         }
       } catch (error) {
-        console.error('Error checking registration status:', error);
+        console.error('Error loading member data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkRegistrationStatus();
+    loadMemberData();
   }, [user?.memberId, selectedPaymentType]);
 
   const paymentTypes = [
@@ -76,9 +93,11 @@ export default function PaymentsPage() {
     {
       id: 'Loan_Repayment' as const,
       title: 'Loan Repayment',
-      description: 'Make a payment towards your loan',
+      description: activeLoans.length > 0 
+        ? `Make a payment towards your loan (${activeLoans.length} active loan${activeLoans.length !== 1 ? 's' : ''})`
+        : 'No active loans to repay',
       amount: null,
-      disabled: false,
+      disabled: activeLoans.length === 0,
     },
   ].filter(type => !type.disabled);
 
@@ -94,6 +113,18 @@ export default function PaymentsPage() {
     if (selectedPaymentType === 'Registration' && hasConfirmedRegistration) {
       alert('Registration fee has already been paid. Please select a different payment type.');
       return;
+    }
+    
+    // Validate loan repayment selection
+    if (selectedPaymentType === 'Loan_Repayment') {
+      if (activeLoans.length === 0) {
+        alert('You have no active loans to repay.');
+        return;
+      }
+      if (!selectedLoanId) {
+        alert('Please select which loan you want to make a payment towards.');
+        return;
+      }
     }
     
     setIsSubmitting(true);
@@ -137,6 +168,15 @@ export default function PaymentsPage() {
         status: 'Pending',
         description: `${selectedPaymentType.replace('_', ' ')} payment of $${amount}`,
       };
+
+      // Add loan request ID for loan repayments
+      if (selectedPaymentType === 'Loan_Repayment' && selectedLoanId) {
+        paymentData.loanRequestId = selectedLoanId;
+        const selectedLoan = activeLoans.find(loan => loan.$id === selectedLoanId);
+        if (selectedLoan) {
+          paymentData.description = `Loan repayment of $${amount} for loan of $${selectedLoan.approvedAmount} (Balance: $${selectedLoan.currentBalance})`;
+        }
+      }
 
       // Add proof data if file was uploaded
       if (proofFileId) {
@@ -220,6 +260,7 @@ export default function PaymentsPage() {
       setShowBankDetails(false);
       setProofFile(null);
       setProofPreview(null);
+      setSelectedLoanId('');
       
     } catch (error: any) {
       console.error('Payment submission failed:', error);
@@ -268,6 +309,16 @@ export default function PaymentsPage() {
     setProofPreview(null);
   };
 
+  const handlePaymentTypeChange = (type: 'Registration' | 'Savings' | 'Loan_Repayment') => {
+    setSelectedPaymentType(type);
+    setSelectedLoanId(''); // Reset loan selection when payment type changes
+    
+    // Auto-select first loan if switching to loan repayment and there's only one loan
+    if (type === 'Loan_Repayment' && activeLoans.length === 1) {
+      setSelectedLoanId(activeLoans[0].$id);
+    }
+  };
+
   return (
     <ProtectedRoute requiredRole="member">
       <DashboardLayout userRole="member">
@@ -300,7 +351,7 @@ export default function PaymentsPage() {
                       ? 'border-accent bg-accent/5'
                       : 'border-border hover:border-accent/50'
                   }`}
-                  onClick={() => setSelectedPaymentType(type.id)}
+                  onClick={() => handlePaymentTypeChange(type.id)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -336,6 +387,38 @@ export default function PaymentsPage() {
                   placeholder="Enter amount"
                   required
                 />
+
+                {/* Loan Selection for Loan Repayments */}
+                {selectedPaymentType === 'Loan_Repayment' && activeLoans.length > 0 && (
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium">Select Loan to Repay</label>
+                    <div className="space-y-2">
+                      {activeLoans.map((loan) => (
+                        <div
+                          key={loan.$id}
+                          className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                            selectedLoanId === loan.$id
+                              ? 'border-accent bg-accent/10'
+                              : 'border-border hover:border-accent/50'
+                          }`}
+                          onClick={() => setSelectedLoanId(loan.$id)}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium">Loan Amount: ${loan.approvedAmount?.toLocaleString()}</p>
+                              <p className="text-sm text-neutral">Purpose: {loan.purpose}</p>
+                              <p className="text-sm text-neutral">Approved: {new Date(loan.approvedAt).toLocaleDateString()}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-red-600">${(loan.currentBalance || 0).toLocaleString()}</p>
+                              <p className="text-xs text-neutral">Outstanding</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
                   <div className="flex items-center">
