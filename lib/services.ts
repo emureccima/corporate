@@ -60,6 +60,32 @@ export const memberService = {
       console.error('Error fetching member:', error);
       return null;
     }
+  },
+
+  // Update member profile
+  async updateMember(memberId: string, updateData: {
+    fullName?: string;
+    email?: string;
+    phoneNumber?: string;
+    address?: string;
+    emergencyContact?: string;
+    emergencyPhone?: string;
+  }) {
+    try {
+      const result = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.membersCollectionId,
+        memberId,
+        {
+          ...updateData,
+          updatedAt: new Date().toISOString()
+        }
+      );
+      return result;
+    } catch (error) {
+      console.error('Error updating member:', error);
+      throw error;
+    }
   }
 };
 

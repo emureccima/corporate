@@ -64,29 +64,110 @@ export default function MemberProfilePage() {
   };
 
   const handleSave = async () => {
+    if (!user?.memberId) {
+      alert('User not found. Please try again.');
+      return;
+    }
+
+    // Confirm before saving
+    const confirmed = window.confirm('Are you sure you want to save these changes?');
+    if (!confirmed) {
+      return;
+    }
+
     setSaving(true);
     try {
-      // TODO: Implement profile update functionality
-      console.log('Updating profile:', formData);
+      // Validate required fields
+      if (!formData.fullName.trim()) {
+        alert('Full name is required.');
+        return;
+      }
+
+      if (!formData.email.trim()) {
+        alert('Email is required.');
+        return;
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      // Phone number validation (optional but if provided, should be valid)
+      if (formData.phoneNumber.trim()) {
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
+          alert('Please enter a valid phone number.');
+          return;
+        }
+      }
+
+      // Emergency phone validation (optional but if provided, should be valid)
+      if (formData.emergencyPhone.trim()) {
+        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+        if (!phoneRegex.test(formData.emergencyPhone.replace(/\s/g, ''))) {
+          alert('Please enter a valid emergency contact phone number.');
+          return;
+        }
+      }
+
+      // Update the member profile
+      const updatedMember = await memberService.updateMember(user.memberId, {
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phoneNumber: formData.phoneNumber.trim(),
+        address: formData.address.trim(),
+        emergencyContact: formData.emergencyContact.trim(),
+        emergencyPhone: formData.emergencyPhone.trim()
+      });
+
+      if (updatedMember) {
+        setEditing(false);
+        alert('Profile updated successfully!');
+        
+        // Reload profile data
+        await loadMemberProfile();
+      } else {
+        alert('Failed to update profile. Please try again.');
+      }
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setEditing(false);
-      alert('Profile updated successfully!');
-      
-      // Reload profile data
-      await loadMemberProfile();
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      
+      // Provide more specific error messages
+      if (error.code === 401) {
+        alert('Authentication failed. Please log in again.');
+      } else if (error.code === 403) {
+        alert('You do not have permission to update this profile.');
+      } else if (error.code === 409) {
+        alert('This email is already in use by another member.');
+      } else {
+        alert('Failed to update profile. Please check your connection and try again.');
+      }
     } finally {
       setSaving(false);
     }
   };
 
   const handleCancel = () => {
+    // Check if there are unsaved changes
+    const hasChanges = 
+      formData.fullName !== (memberData?.fullName || '') ||
+      formData.email !== (memberData?.email || '') ||
+      formData.phoneNumber !== (memberData?.phoneNumber || '') ||
+      formData.address !== (memberData?.address || '') ||
+      formData.emergencyContact !== (memberData?.emergencyContact || '') ||
+      formData.emergencyPhone !== (memberData?.emergencyPhone || '');
+
+    if (hasChanges) {
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      if (!confirmed) {
+        return;
+      }
+    }
+
     setEditing(false);
     // Reset form data to original values
     if (memberData) {
@@ -137,7 +218,7 @@ export default function MemberProfilePage() {
               <h1 className="text-3xl font-serif font-bold">My Profile</h1>
               <p className="text-neutral">Manage your personal information and account settings</p>
             </div>
-            {!editing && (
+            {/* {!editing && (
               <Button 
                 variant="outline" 
                 onClick={() => setEditing(true)}
@@ -146,7 +227,7 @@ export default function MemberProfilePage() {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
-            )}
+            )} */}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -181,6 +262,12 @@ export default function MemberProfilePage() {
                     <span className="text-sm text-neutral">Role</span>
                     <span className="text-sm font-medium capitalize">{user?.role}</span>
                   </div>
+                  {memberData.updatedAt && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-neutral">Last Updated</span>
+                      <span className="text-sm font-medium">{formatDate(memberData.updatedAt)}</span>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -210,10 +297,18 @@ export default function MemberProfilePage() {
                           variant="accent" 
                           onClick={handleSave}
                           disabled={saving}
-                          isLoading={saving}
                         >
-                          <Save className="h-4 w-4 mr-1" />
-                          Save Changes
+                          {saving ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
+                              Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4 mr-1" />
+                              Save Changes
+                            </>
+                          )}
                         </Button>
                       </div>
                     )}

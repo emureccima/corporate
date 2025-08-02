@@ -89,7 +89,7 @@ export function Sidebar({ userRole }: SidebarProps) {
       )}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="p-6 border-b border-neutral-700">
+          {/* <div className="p-6 border-b border-neutral-700">
             <div className="flex items-center space-x-3">
               <Image
                 src="/emurelogo.jpg"
@@ -105,7 +105,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* User Info */}
           <div className="p-4 border-b border-neutral-700">
