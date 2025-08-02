@@ -109,7 +109,7 @@ export function Header({ user, onLogout }: HeaderProps) {
               ) : (
                 <div className="hidden sm:flex items-center space-x-2">
                   <Link href="/auth/login">
-                    <Button variant="ghost" size="sm" className="text-background hover:text-accent">
+                    <Button variant="ghost" size="sm" className="text-background hover:text-accent bg-accent">
                       Sign In
                     </Button>
                   </Link>
