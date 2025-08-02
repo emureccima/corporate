@@ -12,7 +12,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="text-xl font-serif font-bold">EMURECCIMA</h3>
             <p className="text-neutral-300 text-sm">
-              Building a stronger community through cooperative values and mutual support.
+              Building a stronger community through Chamber values and mutual support.
             </p>
             {/* <div className="flex space-x-4">
               <Facebook className="h-5 w-5 text-neutral-300 hover:text-accent cursor-pointer transition-colors" />

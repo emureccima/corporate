@@ -1,5 +1,5 @@
 # Appwrite Database Setup Guide
-## EMURECCIMA - Cooperative Membership Platform
+## EMURECCIMA - Chamber Membership Platform
 
 This document contains all the collections and attributes you need to create in your Appwrite database.
 

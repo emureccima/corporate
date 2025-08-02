@@ -27,7 +27,7 @@ export default function Home() {
               Growing <span className="text-accent">Together</span>
             </h1>
             <p className="text-xl lg:text-2xl text-neutral-300 max-w-2xl mx-auto">
-              Join our cooperative society and be part of a community that believes in mutual support, 
+              Join our Chamber society and be part of a community that believes in mutual support, 
               shared prosperity, and collective growth.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -51,7 +51,7 @@ export default function Home() {
       <section className="container">
         <div className="text-center space-y-4 mb-16">
           <h2 className="text-3xl lg:text-4xl font-serif font-bold">
-            Why Choose Our Cooperative?
+            Why Choose Our Chamber?
           </h2>
           <p className="text-xl text-neutral max-w-2xl mx-auto">
             Experience the benefits of collective strength and shared prosperity
@@ -110,7 +110,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <p className="text-neutral">
-                Benefit from profit-sharing and dividend distributions based on cooperative success.
+                Benefit from profit-sharing and dividend distributions based on Chamber success.
               </p>
             </CardContent>
           </Card>
@@ -126,7 +126,7 @@ export default function Home() {
                 Comprehensive Financial Services
               </h2>
               <p className="text-lg text-neutral">
-                Our cooperative offers a full range of financial services designed to meet the diverse needs 
+                Our Chamber offers a full range of financial services designed to meet the diverse needs 
                 of our members. From savings accounts to loan services, we're here to support your financial journey.
               </p>
               <ul className="space-y-3">

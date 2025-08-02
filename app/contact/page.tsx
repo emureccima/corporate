@@ -10,7 +10,7 @@ export default function ContactPage() {
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-serif font-bold">Contact Us</h1>
         <p className="text-xl text-neutral max-w-2xl mx-auto">
-          Get in touch with our cooperative team. We're here to help you with any questions or concerns.
+          Get in touch with our Chamber team. We're here to help you with any questions or concerns.
         </p>
       </div>
 
@@ -148,7 +148,7 @@ export default function ContactPage() {
       <div className="space-y-8">
         <div className="text-center">
           <h2 className="text-3xl font-serif font-bold mb-4">Frequently Asked Questions</h2>
-          <p className="text-neutral">Quick answers to common questions about our cooperative</p>
+          <p className="text-neutral">Quick answers to common questions about our Chamber</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -182,7 +182,7 @@ export default function ContactPage() {
             </CardHeader>
             <CardContent>
               <p className="text-neutral">
-                You can make payments through bank transfer to our cooperative account. 
+                You can make payments through bank transfer to our Chamber account. 
                 Our payment system supports both online and offline transfers with admin confirmation.
               </p>
             </CardContent>
@@ -194,7 +194,7 @@ export default function ContactPage() {
             </CardHeader>
             <CardContent>
               <p className="text-neutral">
-                Dividends are typically distributed annually based on the cooperative's financial performance 
+                Dividends are typically distributed annually based on the Chamber's financial performance 
                 and your participation level throughout the year.
               </p>
             </CardContent>

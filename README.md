@@ -1,6 +1,6 @@
-# EMURECCIMA - Cooperative Membership Platform
+# EMURECCIMA - Chamber Membership Platform
 
-A modern, full-featured cooperative society management platform built with Next.js, Tailwind CSS, and Appwrite. This application enables cooperative societies to manage member registration, financial services (savings & loans), community events, and administrative operations.
+A modern, full-featured Chamber society management platform built with Next.js, Tailwind CSS, and Appwrite. This application enables Chamber societies to manage member registration, financial services (savings & loans), community events, and administrative operations.
 
 ## ✨ Features
 
@@ -35,7 +35,7 @@ A modern, full-featured cooperative society management platform built with Next.
 ### 🔧 **Admin Dashboard**
 - **Member Approval**: Review and approve new registrations
 - **Payment Confirmations**: Verify and process payments
-- **Financial Reports**: Track cooperative finances
+- **Financial Reports**: Track Chamber finances
 - **Event Management**: Create and manage events
 - **System Settings**: Configure bank details and notifications
 
@@ -88,12 +88,12 @@ A modern, full-featured cooperative society management platform built with Next.
    NEXT_PUBLIC_APPWRITE_STORAGE_ID=your_storage_id_here
    
    # Bank Account Details
-   NEXT_PUBLIC_BANK_ACCOUNT_NAME=Cooperative Society Account
+   NEXT_PUBLIC_BANK_ACCOUNT_NAME=Chamber Society Account
    NEXT_PUBLIC_BANK_ACCOUNT_NUMBER=your_account_number
    NEXT_PUBLIC_BANK_NAME=your_bank_name
    
    # Admin Configuration
-   ADMIN_EMAIL=admin@cooperative.com
+   ADMIN_EMAIL=admin@Chamber.com
    ```
 
 4. **Set up Appwrite Database**
@@ -239,4 +239,4 @@ For questions or support, please contact the admin team or create an issue in th
 
 ---
 
-**Built with ❤️ for cooperative societies worldwide**
+**Built with ❤️ for Chamber societies worldwide**

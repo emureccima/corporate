@@ -29,7 +29,7 @@ export default function PaymentsPage() {
 
   // Bank details (to be provided by you)
   const bankDetails = {
-    accountName: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'Cooperative Society Account',
+    accountName: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NAME || 'Chamber Society Account',
     accountNumber: process.env.NEXT_PUBLIC_BANK_ACCOUNT_NUMBER || 'Account number to be provided',
     bankName: process.env.NEXT_PUBLIC_BANK_NAME || 'Bank name to be provided',
   };
@@ -426,7 +426,7 @@ export default function PaymentsPage() {
                     <span className="font-medium text-blue-900">Payment Method: Bank Transfer</span>
                   </div>
                   <p className="text-sm text-blue-700 mt-1">
-                    All payments are processed through bank transfer to our cooperative account.
+                    All payments are processed through bank transfer to our Chamber account.
                   </p>
                 </div>
 
@@ -613,7 +613,7 @@ export default function PaymentsPage() {
                   <div className="w-2 h-2 bg-neutral-300 rounded-full mt-2"></div>
                   <div>
                     <h4 className="font-medium">Step 2: Make Bank Transfer</h4>
-                    <p className="text-sm text-neutral">Transfer the amount to our cooperative bank account</p>
+                    <p className="text-sm text-neutral">Transfer the amount to our Chamber bank account</p>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3">

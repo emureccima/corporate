@@ -76,7 +76,7 @@ export default function DashboardPage() {
                 Welcome back, {user?.name}!
               </h1>
               <p className="text-neutral">
-                Here's your cooperative account overview and recent activity.
+                Here's your Chamber account overview and recent activity.
               </p>
             </div>
             

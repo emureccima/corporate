@@ -7,7 +7,7 @@ const events = [
   {
     id: '1',
     title: 'Annual General Meeting',
-    description: 'Join us for our annual general meeting to discuss cooperative updates, financial reports, and future plans.',
+    description: 'Join us for our annual general meeting to discuss Chamber updates, financial reports, and future plans.',
     date: '2025-02-15',
     time: '10:00 AM',
     location: 'Community Center Hall',
@@ -46,7 +46,7 @@ export default function EventsPage() {
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-serif font-bold">Community Events</h1>
         <p className="text-xl text-neutral max-w-2xl mx-auto">
-          Stay connected with your cooperative community through our regular events and activities
+          Stay connected with your Chamber community through our regular events and activities
         </p>
       </div>
 
@@ -106,7 +106,7 @@ export default function EventsPage() {
           Become a member to participate in all our community events and activities
         </p>
         <Button variant="accent" size="lg">
-          Join Our Cooperative
+          Join Our Chamber
         </Button>
       </div>
     </div>

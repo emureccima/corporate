@@ -86,7 +86,7 @@ function LoginForm() {
           <CardHeader className="text-center mt-4">
             <CardTitle className="text-3xl font-bold text-foreground">Welcome Back</CardTitle>
             <CardDescription className="text-neutral-600 mt-1">
-              Sign in to your cooperative account
+              Sign in to your Chamber account
             </CardDescription>
           </CardHeader>
 
@@ -148,7 +148,7 @@ function LoginForm() {
             <div className="mt-6 text-center text-sm text-neutral-600">
               Don&apos;t have an account?{' '}
               <Link href="/auth/register" className="text-orange-600 hover:underline font-medium">
-                Join our cooperative
+                Join our Chamber
               </Link>
             </div>
           </CardContent>

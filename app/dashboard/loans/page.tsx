@@ -191,7 +191,7 @@ export default function MemberLoansPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-blue-800 text-lg">Need financial assistance?</h3>
-                <p className="text-sm text-blue-700">Apply for a loan from the cooperative</p>
+                <p className="text-sm text-blue-700">Apply for a loan from the Chamber</p>
               </div>
               <Button 
                 variant="accent" 

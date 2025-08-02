@@ -74,7 +74,7 @@ export default function AdminPage() {
           {/* Header */}
           <div className="space-y-2">
             <h1 className="text-3xl font-serif font-bold">Admin Dashboard</h1>
-            <p className="text-neutral">Welcome back, {user?.name}. Here's what's happening in your cooperative.</p>
+            <p className="text-neutral">Welcome back, {user?.name}. Here's what's happening in your Chamber.</p>
           </div>
 
           {/* Quick Stats */}

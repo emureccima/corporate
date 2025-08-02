@@ -233,7 +233,7 @@ export default function AdminMembersPage() {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-serif font-bold">Member Management</h1>
-              <p className="text-neutral">Manage and view all cooperative members</p>
+              <p className="text-neutral">Manage and view all Chamber members</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-neutral">

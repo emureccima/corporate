@@ -33,7 +33,7 @@ const galleryImages = [
   },
   {
     id: '4',
-    title: 'Cooperative Office Opening',
+    title: 'Chamber Office Opening',
     description: 'Grand opening of our new office space',
     url: '/images/placeholder-office1.jpg',
     category: 'events',
@@ -42,7 +42,7 @@ const galleryImages = [
   {
     id: '5',
     title: 'Members Appreciation Day',
-    description: 'Celebrating our wonderful cooperative members',
+    description: 'Celebrating our wonderful Chamber members',
     url: '/images/placeholder-celebration1.jpg',
     category: 'events',
     date: '2024-08-25',
@@ -50,7 +50,7 @@ const galleryImages = [
   {
     id: '6',
     title: 'Youth Outreach Program',
-    description: 'Engaging with local youth about cooperative values',
+    description: 'Engaging with local youth about Chamber values',
     url: '/images/placeholder-youth1.jpg',
     category: 'community',
     date: '2024-07-10',
@@ -78,7 +78,7 @@ export default function GalleryPage() {
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-serif font-bold">Photo Gallery</h1>
         <p className="text-xl text-neutral max-w-2xl mx-auto">
-          Explore moments from our cooperative community events and activities
+          Explore moments from our Chamber community events and activities
         </p>
       </div>
 
