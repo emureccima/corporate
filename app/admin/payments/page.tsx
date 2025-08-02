@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { DollarSign, Search, CheckCircle, XCircle, Clock, Eye } from 'lucide-react';
+import { DollarSign, Search, CheckCircle, XCircle, Clock, Eye, FileText, Download } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { paymentService, registrationService } from '@/lib/services';
-import { databases, appwriteConfig } from '@/lib/appwrite';
+import { databases, appwriteConfig, storage } from '@/lib/appwrite';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminPaymentsPage() {
@@ -122,6 +122,29 @@ export default function AdminPaymentsPage() {
 
   const getPaymentTypeDisplay = (type: string) => {
     return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
+  const viewPaymentProof = async (proofFileId: string, fileName: string) => {
+    try {
+      const fileUrl = storage.getFileView(appwriteConfig.storageId, proofFileId);
+      window.open(fileUrl, '_blank');
+    } catch (error) {
+      console.error('Error viewing payment proof:', error);
+      alert('Failed to load payment proof. Please try again.');
+    }
+  };
+
+  const downloadPaymentProof = async (proofFileId: string, fileName: string) => {
+    try {
+      const fileUrl = storage.getFileDownload(appwriteConfig.storageId, proofFileId);
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
+      link.click();
+    } catch (error) {
+      console.error('Error downloading payment proof:', error);
+      alert('Failed to download payment proof. Please try again.');
+    }
   };
 
   if (loading) {
@@ -245,6 +268,35 @@ export default function AdminPaymentsPage() {
                               <div>
                                 <span className="text-sm text-neutral">Description:</span>
                                 <p className="font-medium text-sm">{payment.description}</p>
+                              </div>
+                            )}
+                            {payment.proofFileId && (
+                              <div>
+                                <span className="text-sm text-neutral">Payment Proof:</span>
+                                <div className="flex items-center space-x-2 mt-1">
+                                  <FileText className="h-4 w-4 text-accent" />
+                                  <span className="text-sm font-medium">{payment.proofFileName || 'Payment proof available'}</span>
+                                </div>
+                                <div className="flex space-x-2 mt-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => viewPaymentProof(payment.proofFileId, payment.proofFileName)}
+                                    className="text-xs"
+                                  >
+                                    <Eye className="h-3 w-3 mr-1" />
+                                    View
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => downloadPaymentProof(payment.proofFileId, payment.proofFileName)}
+                                    className="text-xs"
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Download
+                                  </Button>
+                                </div>
                               </div>
                             )}
                           </div>

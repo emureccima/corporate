@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CreditCard, CheckCircle, AlertCircle, Copy } from 'lucide-react';
+import { CreditCard, CheckCircle, AlertCircle, Copy, Upload, X } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { databases, appwriteConfig } from '@/lib/appwrite';
+import { databases, appwriteConfig, storage } from '@/lib/appwrite';
+import { registrationService } from '@/lib/services';
 import { ID } from 'appwrite';
 
 export default function PaymentsPage() {
@@ -18,6 +19,11 @@ export default function PaymentsPage() {
   const [paymentMade, setPaymentMade] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasConfirmedRegistration, setHasConfirmedRegistration] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [isUploadingProof, setIsUploadingProof] = useState(false);
 
   // Bank details (to be provided by you)
   const bankDetails = {
@@ -28,34 +34,97 @@ export default function PaymentsPage() {
 
   const registrationFee = parseFloat(process.env.NEXT_PUBLIC_REGISTRATION_FEE || '50');
 
+  // Check if member has confirmed registration payment
+  useEffect(() => {
+    const checkRegistrationStatus = async () => {
+      if (!user?.memberId) return;
+      
+      try {
+        const confirmedRegistrations = await registrationService.getConfirmedRegistrationPayments();
+        const hasConfirmed = confirmedRegistrations.some(payment => payment.memberId === user.memberId);
+        setHasConfirmedRegistration(hasConfirmed);
+        
+        // If registration is confirmed, default to Savings
+        if (hasConfirmed && selectedPaymentType === 'Registration') {
+          setSelectedPaymentType('Savings');
+        }
+      } catch (error) {
+        console.error('Error checking registration status:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkRegistrationStatus();
+  }, [user?.memberId, selectedPaymentType]);
+
   const paymentTypes = [
     {
       id: 'Registration' as const,
       title: 'Registration Fee',
-      description: 'One-time membership registration fee',
+      description: hasConfirmedRegistration ? 'Paid - Registration completed' : 'One-time membership registration fee',
       amount: registrationFee,
+      disabled: hasConfirmedRegistration,
     },
     {
       id: 'Savings' as const,
       title: 'Savings Deposit',
       description: 'Add money to your savings account',
       amount: null,
+      disabled: false,
     },
     {
       id: 'Loan_Repayment' as const,
       title: 'Loan Repayment',
       description: 'Make a payment towards your loan',
       amount: null,
+      disabled: false,
     },
-  ];
+  ].filter(type => !type.disabled);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('=== PAYMENT SUBMISSION DEBUG ===');
+    console.log('Selected payment type:', selectedPaymentType);
+    console.log('Has confirmed registration:', hasConfirmedRegistration);
+    console.log('Available payment types:', paymentTypes.map(p => p.id));
+    
+    // Prevent duplicate registration payments
+    if (selectedPaymentType === 'Registration' && hasConfirmedRegistration) {
+      alert('Registration fee has already been paid. Please select a different payment type.');
+      return;
+    }
+    
     setIsSubmitting(true);
 
     try {
+      let proofFileId = null;
+
+      // Upload proof file if provided
+      if (proofFile) {
+        setIsUploadingProof(true);
+        try {
+          const uploadedFile = await storage.createFile(
+            appwriteConfig.storageId,
+            ID.unique(),
+            proofFile
+          );
+          proofFileId = uploadedFile.$id;
+          console.log('Successfully uploaded proof file:', proofFileId);
+        } catch (uploadError) {
+          console.error('File upload failed:', uploadError);
+          alert('Failed to upload payment proof. Please try again.');
+          setIsUploadingProof(false);
+          setIsSubmitting(false);
+          return;
+        } finally {
+          setIsUploadingProof(false);
+        }
+      }
+
       // Create payment record in Appwrite database
-      const paymentData = {
+      const paymentData: any = {
         memberId: user?.memberId,
         memberName: user?.name,
         paymentType: selectedPaymentType,
@@ -69,13 +138,78 @@ export default function PaymentsPage() {
         description: `${selectedPaymentType.replace('_', ' ')} payment of $${amount}`,
       };
 
-      // Save to Appwrite
-      await databases.createDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        ID.unique(),
-        paymentData
-      );
+      // Add proof data if file was uploaded
+      if (proofFileId) {
+        paymentData.proofFileId = proofFileId;
+        paymentData.proofFileName = proofFile?.name || null;
+      }
+
+      // Determine the correct collection based on payment type
+      let collectionId;
+      let fallbackCollectionId = appwriteConfig.paymentsCollectionId;
+      
+      switch (selectedPaymentType) {
+        case 'Registration':
+          collectionId = appwriteConfig.paymentsCollectionId;
+          break;
+        case 'Savings':
+          collectionId = appwriteConfig.savingsCollectionId;
+          break;
+        case 'Loan_Repayment':
+          collectionId = appwriteConfig.loansCollectionId;
+          break;
+        default:
+          collectionId = appwriteConfig.paymentsCollectionId;
+      }
+      
+      console.log(`Attempting to save ${selectedPaymentType} payment to collection:`, collectionId);
+      console.log('Database ID:', appwriteConfig.databaseId);
+      console.log('Fallback collection ID:', fallbackCollectionId);
+      
+      // Try to save to the primary collection first, fallback to payments collection if it fails
+      try {
+        await databases.createDocument(
+          appwriteConfig.databaseId,
+          collectionId,
+          ID.unique(),
+          paymentData
+        );
+        console.log(`Successfully saved to ${collectionId}`);
+      } catch (collectionError: any) {
+        console.warn(`Failed to save to ${collectionId}:`, collectionError);
+        
+        // If the primary collection doesn't exist, try the fallback
+        if (collectionError.code === 404 && collectionError.type === 'collection_not_found') {
+          console.log(`Collection ${collectionId} not found, trying fallback to ${fallbackCollectionId}`);
+          
+          try {
+            await databases.createDocument(
+              appwriteConfig.databaseId,
+              fallbackCollectionId,
+              ID.unique(),
+              paymentData
+            );
+            console.log(`Successfully saved to fallback collection ${fallbackCollectionId}`);
+          } catch (fallbackError) {
+            console.error('Fallback collection also failed:', fallbackError);
+            
+            // Clean up uploaded file if both saves failed
+            if (proofFileId) {
+              try {
+                await storage.deleteFile(appwriteConfig.storageId, proofFileId);
+                console.log('Cleaned up uploaded file after all saves failed');
+              } catch (cleanupError) {
+                console.error('Failed to clean up uploaded file:', cleanupError);
+              }
+            }
+            
+            throw new Error(`Failed to save payment. Both primary collection (${collectionId}) and fallback collection (${fallbackCollectionId}) are not accessible. Please contact support.`);
+          }
+        } else {
+          // Re-throw the original error if it's not a collection not found error
+          throw collectionError;
+        }
+      }
       
       // Show success message
       alert('Payment submission successful! Please wait for admin confirmation.');
@@ -84,8 +218,10 @@ export default function PaymentsPage() {
       setAmount('');
       setPaymentMade(false);
       setShowBankDetails(false);
+      setProofFile(null);
+      setProofPreview(null);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment submission failed:', error);
       alert('Payment submission failed. Please try again.');
     } finally {
@@ -96,6 +232,40 @@ export default function PaymentsPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('Copied to clipboard!');
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      alert('Please upload only images (JPG, PNG) or PDF files');
+      return;
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setProofFile(file);
+
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => setProofPreview(e.target?.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setProofPreview(null);
+    }
+  };
+
+  const removeProofFile = () => {
+    setProofFile(null);
+    setProofPreview(null);
   };
 
   return (
@@ -117,7 +287,12 @@ export default function PaymentsPage() {
               <CardDescription>Choose what you'd like to pay for</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {paymentTypes.map((type) => (
+              {isLoading ? (
+                <div className="p-4 text-center text-neutral">
+                  Loading payment options...
+                </div>
+              ) : (
+                paymentTypes.map((type) => (
                 <div
                   key={type.id}
                   className={`p-4 border rounded-lg cursor-pointer transition-colors ${
@@ -139,7 +314,8 @@ export default function PaymentsPage() {
                     )}
                   </div>
                 </div>
-              ))}
+              ))
+              )}
             </CardContent>
           </Card>
 
@@ -235,6 +411,72 @@ export default function PaymentsPage() {
                   </Card>
                 )}
 
+                {/* Payment Proof Upload */}
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Upload Payment Proof (Optional)</label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 hover:border-accent/50 transition-colors">
+                    {!proofFile ? (
+                      <div className="text-center">
+                        <Upload className="mx-auto h-8 w-8 text-neutral mb-2" />
+                        <p className="text-sm text-neutral mb-2">
+                          Upload receipt, screenshot, or bank transfer proof
+                        </p>
+                        <p className="text-xs text-neutral mb-3">
+                          Supports: JPG, PNG, PDF (max 5MB)
+                        </p>
+                        <input
+                          type="file"
+                          id="proofUpload"
+                          accept="image/*,.pdf"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('proofUpload')?.click()}
+                        >
+                          Choose File
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-accent/10 rounded flex items-center justify-center">
+                              <Upload className="h-4 w-4 text-accent" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{proofFile.name}</p>
+                              <p className="text-xs text-neutral">
+                                {(proofFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={removeProofFile}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        {proofPreview && (
+                          <div className="mt-2">
+                            <img
+                              src={proofPreview}
+                              alt="Payment proof preview"
+                              className="max-w-full h-32 object-contain rounded border"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
@@ -251,10 +493,15 @@ export default function PaymentsPage() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={!paymentMade || !amount || isSubmitting}
-                  isLoading={isSubmitting}
+                  disabled={!paymentMade || !amount || isSubmitting || isUploadingProof}
+                  isLoading={isSubmitting || isUploadingProof}
                 >
-                  Submit Bank Transfer Confirmation
+                  {isUploadingProof 
+                    ? 'Uploading Proof...' 
+                    : isSubmitting 
+                    ? 'Submitting...' 
+                    : 'Submit Bank Transfer Confirmation'
+                  }
                 </Button>
               </form>
             </CardContent>

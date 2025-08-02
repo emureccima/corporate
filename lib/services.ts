@@ -292,11 +292,8 @@ export const savingsService = {
     try {
       const result = await databases.listDocuments(
         appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('paymentType', 'Savings'),
-          Query.orderDesc('$createdAt')
-        ]
+        appwriteConfig.savingsCollectionId,
+        [Query.orderDesc('$createdAt')]
       );
       return result.documents;
     } catch (error) {
@@ -310,9 +307,8 @@ export const savingsService = {
     try {
       const result = await databases.listDocuments(
         appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
+        appwriteConfig.savingsCollectionId,
         [
-          Query.equal('paymentType', 'Savings'),
           Query.equal('memberId', memberId),
           Query.orderDesc('$createdAt')
         ]
@@ -331,11 +327,8 @@ export const savingsService = {
         this.getAllSavingsPayments(),
         databases.listDocuments(
           appwriteConfig.databaseId,
-          appwriteConfig.paymentsCollectionId,
-          [
-            Query.equal('paymentType', 'Savings'),
-            Query.equal('status', 'Confirmed')
-          ]
+          appwriteConfig.savingsCollectionId,
+          [Query.equal('status', 'Confirmed')]
         )
       ]);
 
@@ -359,6 +352,26 @@ export const savingsService = {
         pendingAmount: 0
       };
     }
+  },
+
+  // Confirm savings payment
+  async confirmSavingsPayment(paymentId: string) {
+    try {
+      const updatedPayment = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.savingsCollectionId,
+        paymentId,
+        {
+          status: 'Confirmed',
+          confirmed: true,
+          confirmedAt: new Date().toISOString()
+        }
+      );
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error confirming savings payment:', error);
+      throw error;
+    }
   }
 };
 
@@ -369,11 +382,8 @@ export const loansService = {
     try {
       const result = await databases.listDocuments(
         appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('paymentType', 'Loan_Repayment'),
-          Query.orderDesc('$createdAt')
-        ]
+        appwriteConfig.loansCollectionId,
+        [Query.orderDesc('$createdAt')]
       );
       return result.documents;
     } catch (error) {
@@ -387,9 +397,8 @@ export const loansService = {
     try {
       const result = await databases.listDocuments(
         appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
+        appwriteConfig.loansCollectionId,
         [
-          Query.equal('paymentType', 'Loan_Repayment'),
           Query.equal('memberId', memberId),
           Query.orderDesc('$createdAt')
         ]
@@ -408,11 +417,8 @@ export const loansService = {
         this.getAllLoanPayments(),
         databases.listDocuments(
           appwriteConfig.databaseId,
-          appwriteConfig.paymentsCollectionId,
-          [
-            Query.equal('paymentType', 'Loan_Repayment'),
-            Query.equal('status', 'Confirmed')
-          ]
+          appwriteConfig.loansCollectionId,
+          [Query.equal('status', 'Confirmed')]
         )
       ]);
 
@@ -435,6 +441,26 @@ export const loansService = {
         totalAmount: 0,
         pendingAmount: 0
       };
+    }
+  },
+
+  // Confirm loan repayment
+  async confirmLoanPayment(paymentId: string) {
+    try {
+      const updatedPayment = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.loansCollectionId,
+        paymentId,
+        {
+          status: 'Confirmed',
+          confirmed: true,
+          confirmedAt: new Date().toISOString()
+        }
+      );
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error confirming loan payment:', error);
+      throw error;
     }
   }
 };

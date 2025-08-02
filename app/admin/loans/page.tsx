@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { CreditCard, Search, CheckCircle, XCircle, Clock, Eye, DollarSign, TrendingDown } from 'lucide-react';
+import { CreditCard, Search, CheckCircle, XCircle, Clock, Eye, DollarSign, TrendingDown, FileText, Download } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { loansService } from '@/lib/services';
-import { databases, appwriteConfig } from '@/lib/appwrite';
+import { databases, appwriteConfig, storage } from '@/lib/appwrite';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminLoansPage() {
@@ -72,21 +72,12 @@ export default function AdminLoansPage() {
       setProcessingPayment(paymentId);
       
       if (action === 'confirm') {
-        await databases.updateDocument(
-          appwriteConfig.databaseId,
-          appwriteConfig.paymentsCollectionId,
-          paymentId,
-          {
-            status: 'Confirmed',
-            confirmed: true,
-            confirmedAt: new Date().toISOString()
-          }
-        );
+        await loansService.confirmLoanPayment(paymentId);
         alert('Loan repayment confirmed successfully!');
       } else if (action === 'reject') {
         await databases.updateDocument(
           appwriteConfig.databaseId,
-          appwriteConfig.paymentsCollectionId,
+          appwriteConfig.loansCollectionId,
           paymentId,
           {
             status: 'Rejected',
@@ -117,6 +108,29 @@ export default function AdminLoansPage() {
         return 'bg-red-100 text-red-800 border-red-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const viewPaymentProof = async (proofFileId: string, fileName: string) => {
+    try {
+      const fileUrl = storage.getFileView(appwriteConfig.storageId, proofFileId);
+      window.open(fileUrl, '_blank');
+    } catch (error) {
+      console.error('Error viewing payment proof:', error);
+      alert('Failed to load payment proof. Please try again.');
+    }
+  };
+
+  const downloadPaymentProof = async (proofFileId: string, fileName: string) => {
+    try {
+      const fileUrl = storage.getFileDownload(appwriteConfig.storageId, proofFileId);
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      link.download = fileName;
+      link.click();
+    } catch (error) {
+      console.error('Error downloading payment proof:', error);
+      alert('Failed to download payment proof. Please try again.');
     }
   };
 
@@ -255,6 +269,12 @@ export default function AdminLoansPage() {
                           <h4 className="font-semibold">{payment.memberName}</h4>
                           <p className="text-sm text-neutral">Member ID: {payment.memberId}</p>
                           <p className="text-xs text-neutral">{formatDate(payment.$createdAt)}</p>
+                          {payment.proofFileId && (
+                            <div className="flex items-center mt-1">
+                              <FileText className="h-3 w-3 text-accent mr-1" />
+                              <span className="text-xs text-accent">Proof attached</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       
@@ -267,13 +287,36 @@ export default function AdminLoansPage() {
                         </div>
                         
                         <div className="flex space-x-2">
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            className="p-2"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          {payment.proofFileId ? (
+                            <div className="flex space-x-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => viewPaymentProof(payment.proofFileId, payment.proofFileName)}
+                                className="p-2"
+                                title="View proof"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => downloadPaymentProof(payment.proofFileId, payment.proofFileName)}
+                                className="p-2"
+                                title="Download proof"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              className="p-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
                           
                           {payment.status === 'Pending' && (
                             <>

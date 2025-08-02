@@ -71,110 +71,94 @@ This document contains all the collections and attributes you need to create in 
 |---|---|---|---|---|---|
 | `memberId` | String | 50 | ✅ | - | ❌ |
 | `memberName` | String | 100 | ✅ | - | ❌ |
-| `transactionType` | Enum | - | ✅ | - | ❌ |
+| `paymentType` | String | 50 | ✅ | "Savings" | ❌ |
 | `amount` | Float | - | ✅ | - | ❌ |
-| `balance` | Float | - | ✅ | - | ❌ |
+| `bankAccount` | String | 50 | ✅ | - | ❌ |
+| `accountName` | String | 100 | ✅ | - | ❌ |
+| `transferType` | String | 50 | ✅ | "Bank Transfer" | ❌ |
+| `paymentMade` | Boolean | - | ✅ | false | ❌ |
+| `confirmed` | Boolean | - | ✅ | false | ❌ |
+| `status` | Enum | - | ✅ | "Pending" | ❌ |
 | `description` | String | 500 | ❌ | - | ❌ |
-| `transactionDate` | DateTime | - | ✅ | - | ❌ |
-| `referenceNumber` | String | 100 | ❌ | - | ❌ |
+| `proofFileId` | String | 100 | ❌ | - | ❌ |
+| `proofFileName` | String | 200 | ❌ | - | ❌ |
 
 **Enum Values:**
-- `transactionType`: ["Deposit", "Withdrawal", "Interest", "Transfer"]
+- `status`: ["Pending", "Confirmed", "Rejected"]
 
 **Indexes:**
 - `memberId`
-- `transactionDate`
-- `transactionType`
+- `status`
+- `$createdAt`
 
 ---
 
-### 4. **Loans Collection**
+### 4. **Loans Collection (Loan Repayments)**
 **Collection ID:** `loans` (create new)
 
 | Attribute Name | Type | Size | Required | Default | Array |
 |---|---|---|---|---|---|
 | `memberId` | String | 50 | ✅ | - | ❌ |
 | `memberName` | String | 100 | ✅ | - | ❌ |
-| `loanAmount` | Float | - | ✅ | - | ❌ |
-| `interestRate` | Float | - | ✅ | - | ❌ |
-| `duration` | Integer | - | ✅ | - | ❌ |
-| `monthlyPayment` | Float | - | ✅ | - | ❌ |
-| `totalRepayment` | Float | - | ✅ | - | ❌ |
-| `remainingBalance` | Float | - | ✅ | - | ❌ |
+| `paymentType` | String | 50 | ✅ | "Loan_Repayment" | ❌ |
+| `amount` | Float | - | ✅ | - | ❌ |
+| `bankAccount` | String | 50 | ✅ | - | ❌ |
+| `accountName` | String | 100 | ✅ | - | ❌ |
+| `transferType` | String | 50 | ✅ | "Bank Transfer" | ❌ |
+| `paymentMade` | Boolean | - | ✅ | false | ❌ |
+| `confirmed` | Boolean | - | ✅ | false | ❌ |
 | `status` | Enum | - | ✅ | "Pending" | ❌ |
-| `startDate` | DateTime | - | ❌ | - | ❌ |
-| `endDate` | DateTime | - | ❌ | - | ❌ |
-| `purpose` | String | 500 | ❌ | - | ❌ |
+| `description` | String | 500 | ❌ | - | ❌ |
+| `proofFileId` | String | 100 | ❌ | - | ❌ |
+| `proofFileName` | String | 200 | ❌ | - | ❌ |
+| `loanId` | String | 50 | ❌ | - | ❌ |
+| `principalAmount` | Float | - | ❌ | - | ❌ |
+| `interestAmount` | Float | - | ❌ | - | ❌ |
 
 **Enum Values:**
-- `status`: ["Pending", "Approved", "Active", "Paid", "Overdue", "Defaulted"]
+- `status`: ["Pending", "Confirmed", "Rejected"]
 
 **Indexes:**
 - `memberId`
 - `status`
-- `startDate`
+- `loanId`
+- `$createdAt`
 
 ---
 
-### 5. **Payments Collection**
+### 5. **Payments Collection (Registration & General Payments)**
 **Collection ID:** `688c6f87003a70de3e6c` (already created)
 
 | Attribute Name | Type | Size | Required | Default | Array |
 |---|---|---|---|---|---|
 | `memberId` | String | 50 | ✅ | - | ❌ |
 | `memberName` | String | 100 | ✅ | - | ❌ |
-| `paymentType` | Enum | - | ✅ | - | ❌ |
+| `paymentType` | String | 50 | ✅ | "Registration" | ❌ |
 | `amount` | Float | - | ✅ | - | ❌ |
-| `bankAccountNumber` | String | 50 | ✅ | - | ❌ |
-| `transferType` | Enum | - | ✅ | - | ❌ |
+| `bankAccount` | String | 50 | ✅ | - | ❌ |
+| `accountName` | String | 100 | ✅ | - | ❌ |
+| `transferType` | String | 50 | ✅ | "Bank Transfer" | ❌ |
 | `paymentMade` | Boolean | - | ✅ | false | ❌ |
 | `confirmed` | Boolean | - | ✅ | false | ❌ |
 | `status` | Enum | - | ✅ | "Pending" | ❌ |
-| `paymentDate` | DateTime | - | ✅ | - | ❌ |
-| `confirmationDate` | DateTime | - | ❌ | - | ❌ |
 | `description` | String | 500 | ❌ | - | ❌ |
-| `receiptUrl` | String | 500 | ❌ | - | ❌ |
+| `proofFileId` | String | 100 | ❌ | - | ❌ |
+| `proofFileName` | String | 200 | ❌ | - | ❌ |
+| `confirmedAt` | DateTime | - | ❌ | - | ❌ |
+| `activatedAt` | DateTime | - | ❌ | - | ❌ |
 
 **Enum Values:**
-- `paymentType`: ["Registration", "Savings", "Loan_Repayment", "Annual_Fee", "Other"]
-- `transferType`: ["Online", "Offline", "Cash", "Cheque"]
-- `status`: ["Pending", "Confirmed", "Rejected", "Processing"]
+- `status`: ["Pending", "Confirmed", "Rejected"]
 
 **Indexes:**
 - `memberId`
 - `status`
 - `paymentType`
-- `paymentDate`
+- `$createdAt`
 
 ---
 
-### 6. **Loan Repayments Collection**
-**Collection ID:** `loan_repayments` (create new)
-
-| Attribute Name | Type | Size | Required | Default | Array |
-|---|---|---|---|---|---|
-| `loanId` | String | 50 | ✅ | - | ❌ |
-| `memberId` | String | 50 | ✅ | - | ❌ |
-| `memberName` | String | 100 | ✅ | - | ❌ |
-| `amount` | Float | - | ✅ | - | ❌ |
-| `paymentDate` | DateTime | - | ✅ | - | ❌ |
-| `principalAmount` | Float | - | ✅ | - | ❌ |
-| `interestAmount` | Float | - | ✅ | - | ❌ |
-| `remainingBalance` | Float | - | ✅ | - | ❌ |
-| `paymentMethod` | Enum | - | ✅ | - | ❌ |
-| `referenceNumber` | String | 100 | ❌ | - | ❌ |
-
-**Enum Values:**
-- `paymentMethod`: ["Cash", "Bank_Transfer", "Cheque", "Online"]
-
-**Indexes:**
-- `loanId`
-- `memberId`
-- `paymentDate`
-
----
-
-### 7. **Gallery Collection**
+### 6. **Gallery Collection**
 **Collection ID:** `gallery` (create new)
 
 | Attribute Name | Type | Size | Required | Default | Array |
@@ -199,7 +183,7 @@ This document contains all the collections and attributes you need to create in 
 
 ---
 
-### 8. **Notifications Collection**
+### 7. **Notifications Collection**
 **Collection ID:** `notifications` (create new)
 
 | Attribute Name | Type | Size | Required | Default | Array |
@@ -302,9 +286,9 @@ NEXT_PUBLIC_APPWRITE_EVENTS_COLLECTION_ID=events
 NEXT_PUBLIC_APPWRITE_SAVINGS_COLLECTION_ID=savings  
 NEXT_PUBLIC_APPWRITE_LOANS_COLLECTION_ID=loans
 NEXT_PUBLIC_APPWRITE_PAYMENTS_COLLECTION_ID=688c6f87003a70de3e6c
-NEXT_PUBLIC_APPWRITE_LOAN_REPAYMENTS_COLLECTION_ID=loan_repayments
 NEXT_PUBLIC_APPWRITE_GALLERY_COLLECTION_ID=gallery
 NEXT_PUBLIC_APPWRITE_NOTIFICATIONS_COLLECTION_ID=notifications
+NEXT_PUBLIC_APPWRITE_STORAGE_ID=688ce0f4003dc5cb8eb6
 ```
 
 ---
@@ -312,9 +296,8 @@ NEXT_PUBLIC_APPWRITE_NOTIFICATIONS_COLLECTION_ID=notifications
 ## ✅ **Setup Checklist**
 
 - [ ] Create Events collection with all attributes
-- [ ] Create Savings collection with all attributes  
-- [ ] Create Loans collection with all attributes
-- [ ] Create Loan Repayments collection with all attributes
+- [ ] Create Savings collection with all attributes (for savings payments)
+- [ ] Create Loans collection with all attributes (for loan repayment payments)
 - [ ] Create Gallery collection with all attributes
 - [ ] Create Notifications collection with all attributes
 - [ ] Set up proper permissions for each collection
@@ -322,6 +305,28 @@ NEXT_PUBLIC_APPWRITE_NOTIFICATIONS_COLLECTION_ID=notifications
 - [ ] Update environment variables with new collection IDs
 - [ ] Test authentication and database operations
 - [ ] Create first admin user account
+
+---
+
+## 💡 **Payment System Architecture**
+
+The payment system uses **separate collections for different payment types** to avoid conflicts and provide better data organization:
+
+### **Payment Routing:**
+- **Registration Payments** → `payments` collection
+- **Savings Payments** → `savings` collection  
+- **Loan Repayments** → `loans` collection
+
+### **Why Separate Collections?**
+1. **Unique Constraints:** Each payment type may have different unique constraints
+2. **Schema Flexibility:** Different payment types need different fields
+3. **Performance:** Smaller, focused collections for better query performance
+4. **Business Logic:** Each payment type has different approval workflows
+
+### **Common Fields Across All Payment Collections:**
+- `memberId`, `memberName`, `amount`, `bankAccount`, `accountName`
+- `transferType`, `paymentMade`, `confirmed`, `status`, `description`
+- `proofFileId`, `proofFileName` (for payment proof uploads)
 
 ---
 

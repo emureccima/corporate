@@ -21,4 +21,42 @@ export const appwriteConfig = {
   storageId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_ID!,
 };
 
+// Validation function to check if required collections exist
+export const validateCollections = async (): Promise<Array<{
+  name: string;
+  id: string;
+  status: 'OK' | 'NOT_FOUND' | 'ERROR';
+  error?: string;
+}>> => {
+  const requiredCollections = [
+    { name: 'Members', id: appwriteConfig.membersCollectionId },
+    { name: 'Payments', id: appwriteConfig.paymentsCollectionId },
+    { name: 'Savings', id: appwriteConfig.savingsCollectionId },
+    { name: 'Loans', id: appwriteConfig.loansCollectionId },
+  ];
+
+  const validationResults: Array<{
+    name: string;
+    id: string;
+    status: 'OK' | 'NOT_FOUND' | 'ERROR';
+    error?: string;
+  }> = [];
+
+  for (const collection of requiredCollections) {
+    try {
+      // Try to list documents to check if collection exists
+      await databases.listDocuments(appwriteConfig.databaseId, collection.id);
+      validationResults.push({ name: collection.name, id: collection.id, status: 'OK' });
+    } catch (error: any) {
+      if (error.code === 404) {
+        validationResults.push({ name: collection.name, id: collection.id, status: 'NOT_FOUND' });
+      } else {
+        validationResults.push({ name: collection.name, id: collection.id, status: 'ERROR', error: error.message });
+      }
+    }
+  }
+
+  return validationResults;
+};
+
 export default client;
