@@ -333,15 +333,15 @@ export default function AdminPaymentsPage() {
                           </div>
                         )}
                         
-                        <Button 
+                        {/* <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => {/* View payment details */}}
+                          onClick={() => }
                           className="w-full"
                         >
                           <Eye className="h-4 w-4 mr-1" />
                           View Details
-                        </Button>
+                        </Button> */}
                       </div>
                     </div>
                   </CardContent>

@@ -14,15 +14,15 @@ export function Footer() {
             <p className="text-neutral-300 text-sm">
               Building a stronger community through cooperative values and mutual support.
             </p>
-            <div className="flex space-x-4">
+            {/* <div className="flex space-x-4">
               <Facebook className="h-5 w-5 text-neutral-300 hover:text-accent cursor-pointer transition-colors" />
               <Twitter className="h-5 w-5 text-neutral-300 hover:text-accent cursor-pointer transition-colors" />
               <Instagram className="h-5 w-5 text-neutral-300 hover:text-accent cursor-pointer transition-colors" />
-            </div>
+            </div> */}
           </div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h4 className="font-semibold">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
@@ -46,10 +46,10 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Services */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h4 className="font-semibold">Services</h4>
             <ul className="space-y-2 text-sm">
               <li>
@@ -73,10 +73,10 @@ export function Footer() {
                 </Link>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Contact Info */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <h4 className="font-semibold">Contact Us</h4>
             <div className="space-y-3 text-sm">
               <div className="flex items-center space-x-2">
@@ -92,7 +92,7 @@ export function Footer() {
                 <span className="text-neutral-300">123 Community St, City, State</span>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         <div className="border-t border-neutral-700 mt-8 pt-8 text-center text-sm text-neutral-300">

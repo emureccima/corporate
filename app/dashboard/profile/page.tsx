@@ -137,7 +137,7 @@ export default function MemberProfilePage() {
               <h1 className="text-3xl font-serif font-bold">My Profile</h1>
               <p className="text-neutral">Manage your personal information and account settings</p>
             </div>
-            {!editing && (
+            {/* {!editing && (
               <Button 
                 variant="outline" 
                 onClick={() => setEditing(true)}
@@ -146,7 +146,7 @@ export default function MemberProfilePage() {
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
-            )}
+            )} */}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

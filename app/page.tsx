@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, Users, CreditCard, Calendar, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Footer } from '@/components/layout/Footer';
 
 export default function Home() {
   return (
@@ -25,9 +26,9 @@ export default function Home() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/events">
-                <Button size="lg" variant="ghost">
-                  Explore Events
+              <Link href="/auth/login">
+                <Button size="lg" variant="ghost" className="text-accent bg-white">
+                  Explore Now
                 </Button>
               </Link>
             </div>
@@ -177,6 +178,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   );
 }

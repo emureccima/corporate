@@ -39,9 +39,9 @@ export function Sidebar({ userRole }: SidebarProps) {
     { name: 'Payments', href: '/admin/payments', icon: CreditCard },
     { name: 'Savings', href: '/admin/savings', icon: PiggyBank },
     { name: 'Loans', href: '/admin/loans', icon: DollarSign },
-    { name: 'Events', href: '/admin/events', icon: Calendar },
-    { name: 'Gallery', href: '/admin/gallery', icon: Camera },
-    { name: 'Settings', href: '/admin/settings', icon: Settings },
+    // { name: 'Events', href: '/admin/events', icon: Calendar },
+    // { name: 'Gallery', href: '/admin/gallery', icon: Camera },
+    // { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
 
   const memberNavigation = [
@@ -50,8 +50,8 @@ export function Sidebar({ userRole }: SidebarProps) {
     { name: 'My Savings', href: '/dashboard/savings', icon: PiggyBank },
     { name: 'My Loans', href: '/dashboard/loans', icon: DollarSign },
     { name: 'My Ledger', href: '/dashboard/ledger', icon: TrendingUp },
-    { name: 'Events', href: '/events', icon: Calendar },
-    { name: 'Gallery', href: '/gallery', icon: Camera },
+    // { name: 'Events', href: '/events', icon: Calendar },
+    // { name: 'Gallery', href: '/gallery', icon: Camera },
     { name: 'Profile', href: '/dashboard/profile', icon: Settings },
   ];
 

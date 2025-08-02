@@ -127,7 +127,7 @@ export default function AdminPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -149,7 +149,7 @@ export default function AdminPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <DollarSign className="h-5 w-5 mr-2 text-accent" />
@@ -192,7 +192,7 @@ export default function AdminPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Recent Activity */}

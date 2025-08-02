@@ -17,10 +17,10 @@ interface HeaderProps {
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'Events', href: '/events' },
-  { name: 'Gallery', href: '/gallery' },
-  { name: 'Members', href: '/members' },
-  { name: 'Contact', href: '/contact' },
+  // { name: 'Events', href: '/events' },
+  // { name: 'Gallery', href: '/gallery' },
+  // { name: 'Members', href: '/members' },
+  // { name: 'Contact', href: '/contact' },
 ];
 
 export function Header({ user, onLogout }: HeaderProps) {

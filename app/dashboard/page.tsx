@@ -345,11 +345,11 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   
-                  <Link href="/dashboard/profile">
+                  {/* <Link href="/dashboard/profile">
                     <Button variant="outline" className="w-full mt-4">
                       Edit Profile
                     </Button>
-                  </Link>
+                  </Link> */}
                 </div>
               </CardContent>
             </Card>
