@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: session.name,
             role: member.role || 'member',
             memberId: member.$id,
+            membershipNumber: member.membershipNumber,
             status: member.status || 'Pending',
           });
         } else {

@@ -564,6 +564,7 @@ export const loansService = {
   async submitLoanRequest(loanData: {
     memberId: string;
     memberName: string;
+    membershipNumber?: string;
     requestedAmount: number;
     purpose: string;
     repaymentPeriod: number;

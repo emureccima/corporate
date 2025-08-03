@@ -452,7 +452,7 @@ export default function AdminLoansPage() {
                               </div>
                               <div>
                                 <h3 className="text-lg font-semibold">{request.memberName}</h3>
-                                <p className="text-sm text-neutral">Member ID: {request.memberId}</p>
+                                <p className="text-sm text-neutral">Member ID: {request.membershipNumber || request.memberId}</p>
                                 <p className="text-xs text-neutral">
                                   Submitted: {formatDate(request.submittedAt || request.$createdAt)}
                                 </p>
@@ -630,7 +630,7 @@ export default function AdminLoansPage() {
                           </div>
                           <div>
                             <h4 className="font-semibold">{payment.memberName}</h4>
-                            <p className="text-sm text-neutral">Member ID: {payment.memberId}</p>
+                            <p className="text-sm text-neutral">Member ID: {payment.membershipNumber || payment.memberId}</p>
                             <p className="text-xs text-neutral">{formatDate(payment.$createdAt)}</p>
                             {payment.proofFileId && (
                               <div className="flex items-center mt-1">

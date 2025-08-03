@@ -283,7 +283,7 @@ export default function AdminLoanRequestsPage() {
                             </div>
                             <div>
                               <h3 className="text-lg font-semibold">{request.memberName}</h3>
-                              <p className="text-sm text-neutral">Member ID: {request.memberId}</p>
+                              <p className="text-sm text-neutral">Member ID: {request.membershipNumber || request.memberId}</p>
                               <p className="text-xs text-neutral">
                                 Submitted: {formatDate(request.submittedAt)}
                               </p>

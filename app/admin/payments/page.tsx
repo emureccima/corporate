@@ -232,7 +232,7 @@ export default function AdminPaymentsPage() {
                         <div className="flex items-start justify-between">
                           <div>
                             <h3 className="text-lg font-semibold">{payment.memberName}</h3>
-                            <p className="text-sm text-neutral">Member ID: {payment.memberId}</p>
+                            <p className="text-sm text-neutral">Member ID: {payment.membershipNumber || payment.memberId}</p>
                           </div>
                           <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(payment.status)}`}>
                             {payment.status}

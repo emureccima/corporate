@@ -246,7 +246,9 @@ export default function AdminRegistrationsPage() {
                         </div>
                         <div>
                           <h4 className="font-semibold">{payment.memberName}</h4>
-                          <p className="text-sm text-neutral">Member ID: {payment.memberId}</p>
+                          <p className="text-sm text-neutral">Member ID: {payment.membershipNumber || payment.memberId}</p>
+                          {/* Debug info */}
+                          <p className="text-xs text-gray-400">Debug: membershipNumber={payment.membershipNumber}, memberId={payment.memberId}</p>
                           <p className="text-xs text-neutral">{formatDate(payment.$createdAt)}</p>
                         </div>
                       </div>

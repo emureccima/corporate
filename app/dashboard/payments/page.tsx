@@ -65,6 +65,7 @@ export default function PaymentsPage() {
         // Debug logging
         console.log('=== PAYMENT TYPE DEBUG ===');
         console.log('User memberId:', user.memberId);
+        console.log('User membershipNumber:', user.membershipNumber);
         console.log('User status:', user?.status);
         console.log('Has confirmed registration:', hasConfirmed);
         console.log('Confirmed registrations:', confirmedRegistrations);
@@ -173,6 +174,7 @@ export default function PaymentsPage() {
       const paymentData: any = {
         memberId: user?.memberId,
         memberName: user?.name,
+        membershipNumber: user?.membershipNumber,
         paymentType: selectedPaymentType,
         amount: parseFloat(amount),
         bankAccount: bankDetails.accountNumber,

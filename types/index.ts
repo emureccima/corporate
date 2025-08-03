@@ -76,7 +76,8 @@ export interface AuthUser {
   email: string;
   name: string;
   role: 'member' | 'admin';
-  memberId?: string;
+  memberId?: string; // System-generated ID for database operations
+  membershipNumber?: string; // Human-readable ID like CH01
   status?: 'Active' | 'Inactive' | 'Pending';
 }
 

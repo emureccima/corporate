@@ -76,6 +76,7 @@ export default function MemberLoansPage() {
       await loansService.submitLoanRequest({
         memberId: user.memberId,
         memberName: user.name,
+        membershipNumber: user.membershipNumber,
         requestedAmount: parseFloat(loanFormData.requestedAmount),
         purpose: loanFormData.purpose,
         repaymentPeriod: parseInt(loanFormData.repaymentPeriod),
