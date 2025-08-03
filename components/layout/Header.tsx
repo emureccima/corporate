@@ -109,7 +109,7 @@ export function Header({ user, onLogout }: HeaderProps) {
               ) : (
                 <div className="hidden sm:flex items-center space-x-2">
                   <Link href="/auth/login">
-                    <Button variant="accent" size="sm" className="text-background hover:text-accent bg-accent">
+                    <Button variant="accent" size="sm" >
                       Sign In
                     </Button>
                   </Link>
@@ -155,7 +155,7 @@ export function Header({ user, onLogout }: HeaderProps) {
               {!user && (
                 <div className="pt-4 space-y-2">
                   <Link href="/auth/login" onClick={() => setIsMenuOpen(false)}>
-                    <Button variant="ghost" size="sm" className="w-full justify-start">
+                    <Button variant="accent" size="sm" className="w-full justify-start">
                       Sign In
                     </Button>
                   </Link>
