@@ -119,16 +119,16 @@ export default function PaymentsPage() {
   
 
   const paymentTypes = [
-    // Show registration if not confirmed AND not pending (including when rejected to show retry option)
-    ...(!hasConfirmedRegistration && !hasPendingRegistration ? [{
+    // Always show registration payment option - users can pay multiple times
+    {
       id: 'Registration' as const,
       title: 'Registration Fee',
       description: hasRejectedRegistration 
         ? 'Your registration payment has been rejected by admin' 
-        : 'One-time membership registration fee',
+        : 'Membership registration fee',
       amount: registrationFee,
       disabled: hasRejectedRegistration,
-    }] : []),
+    },
     // Show savings if member has confirmed registration AND been approved by admin
     ...(hasConfirmedRegistration && user?.status === 'Active' ? [{
       id: 'Savings' as const,
@@ -317,14 +317,16 @@ export default function PaymentsPage() {
       }
     }
     
-    // Prevent duplicate registration payments
-    if (selectedPaymentType === 'Registration') {
-      if (hasConfirmedRegistration) {
-        toast.error('Registration fee has already been paid. Please select a different payment type.');
-        return;
-      }
-      if (hasPendingRegistration) {
-        toast.error('You already have a registration payment pending admin approval. Please wait for confirmation before submitting another registration payment.');
+    // Auto-cleanup rejected registration payments only
+    if (selectedPaymentType === 'Registration' && hasRejectedRegistration && rejectedRegistrationId) {
+      try {
+        await registrationService.deleteRejectedRegistrationPayment(rejectedRegistrationId);
+        setHasRejectedRegistration(false);
+        setRejectedRegistrationId(null);
+        toast.success('Rejected payment cleared automatically.');
+      } catch (error) {
+        console.error('Auto-cleanup failed:', error);
+        toast.error('Failed to clear rejected payment. Please try the retry button.');
         return;
       }
     }
