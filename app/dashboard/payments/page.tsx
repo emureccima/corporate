@@ -9,28 +9,23 @@ import { CreditCard, CheckCircle, AlertCircle, Copy, Upload, X } from 'lucide-re
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { databases, appwriteConfig, storage } from '@/lib/appwrite';
-import { registrationService, loansService } from '@/lib/services';
+import { loansService } from '@/lib/services';
 import { ID } from 'appwrite';
 import { toast } from 'sonner';
 
 export default function PaymentsPage() {
   const { user, refreshUser } = useAuth();
-  const [selectedPaymentType, setSelectedPaymentType] = useState<'Registration' | 'Savings' | 'Loan_Repayment'>('Registration');
+  const [selectedPaymentType, setSelectedPaymentType] = useState<'Savings' | 'Loan_Repayment'>('Savings');
   const [amount, setAmount] = useState('');
   const [paymentMade, setPaymentMade] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasConfirmedRegistration, setHasConfirmedRegistration] = useState(false);
-  const [hasPendingRegistration, setHasPendingRegistration] = useState(false);
-  const [hasRejectedRegistration, setHasRejectedRegistration] = useState(false);
-  const [rejectedRegistrationId, setRejectedRegistrationId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreview, setProofPreview] = useState<string | null>(null);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
   const [activeLoans, setActiveLoans] = useState<any[]>([]);
   const [selectedLoanId, setSelectedLoanId] = useState<string>('');
-  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   // Bank details (to be provided by you)
   const bankDetails = {
@@ -39,7 +34,6 @@ export default function PaymentsPage() {
     bankName: process.env.NEXT_PUBLIC_BANK_NAME || 'Bank name to be provided',
   };
 
-  const registrationFee = parseFloat(process.env.NEXT_PUBLIC_REGISTRATION_FEE || '50');
 
   // Load member data and active loans
   useEffect(() => {
@@ -47,22 +41,7 @@ export default function PaymentsPage() {
       if (!user?.memberId) return;
       
       try {
-        const [confirmedRegistrations, pendingRegistrations, rejectedRegistrations, loanSummary] = await Promise.all([
-          registrationService.getConfirmedRegistrationPayments(),
-          registrationService.getPendingRegistrationPayments(),
-          registrationService.getRejectedRegistrationPayments(),
-          loansService.getMemberLoanSummary(user.memberId)
-        ]);
-        
-        const hasConfirmed = confirmedRegistrations.some(payment => payment.memberId === user.memberId);
-        const hasPending = pendingRegistrations.some(payment => payment.memberId === user.memberId);
-        const rejectedPayment = rejectedRegistrations.find(payment => payment.memberId === user.memberId);
-        const hasRejected = !!rejectedPayment;
-        
-        setHasConfirmedRegistration(hasConfirmed);
-        setHasPendingRegistration(hasPending);
-        setHasRejectedRegistration(hasRejected);
-        setRejectedRegistrationId(rejectedPayment?.$id || null);
+        const loanSummary = await loansService.getMemberLoanSummary(user.memberId);
         
         // Get active loans (approved loans with outstanding balance)
         const activeLoansData = loanSummary.loanRequests.filter(loan => 
@@ -80,13 +59,6 @@ export default function PaymentsPage() {
         console.log('User memberId:', user.memberId);
         console.log('User membershipNumber:', user.membershipNumber);
         console.log('User status:', user?.status);
-        console.log('Has confirmed registration:', hasConfirmed);
-        console.log('Has pending registration:', hasPending);
-        console.log('Has rejected registration:', hasRejected);
-        console.log('Rejected registration ID:', rejectedPayment?.$id);
-        console.log('Confirmed registrations:', confirmedRegistrations);
-        console.log('Pending registrations:', pendingRegistrations);
-        console.log('Rejected registrations:', rejectedRegistrations);
         console.log('Active loans count:', activeLoansData.length);
         console.log('Active loans:', activeLoansData);
         
@@ -101,44 +73,18 @@ export default function PaymentsPage() {
     loadMemberData();
   }, [user?.memberId, selectedPaymentType]);
 
-  // Periodically refresh user status if registration is confirmed but user is not active yet
-  useEffect(() => {
-    if (hasConfirmedRegistration && user?.status !== 'Active') {
-      console.log('Registration confirmed but not active, checking for status updates...');
-      const interval = setInterval(async () => {
-        await refreshUser();
-      }, 10000); // Check every 10 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [hasConfirmedRegistration, user?.status, refreshUser]);
-
-  // Check if member is approved (has paid registration AND been approved by admin)
-  const isMemberApproved = hasConfirmedRegistration && user?.status === 'Active';
 
   
 
   const paymentTypes = [
-    // Always show registration payment option - users can pay multiple times
     {
-      id: 'Registration' as const,
-      title: 'Registration Fee',
-      description: hasRejectedRegistration 
-        ? 'Your registration payment has been rejected by admin' 
-        : 'Membership registration fee',
-      amount: registrationFee,
-      disabled: hasRejectedRegistration,
-    },
-    // Show savings if member has confirmed registration AND been approved by admin
-    ...(hasConfirmedRegistration && user?.status === 'Active' ? [{
       id: 'Savings' as const,
       title: 'Savings Deposit',
       description: 'Add money to your savings account',
       amount: null,
       disabled: false,
-    }] : []),
-    // Show loan repayment if member has confirmed registration AND been approved by admin AND has active loans
-    ...(hasConfirmedRegistration && user?.status === 'Active' && activeLoans.length > 0 ? [{
+    },
+    ...(activeLoans.length > 0 ? [{
       id: 'Loan_Repayment' as const,
       title: 'Loan Repayment',
       description: `Make a payment towards your loan (${activeLoans.length} active loan${activeLoans.length !== 1 ? 's' : ''})`,
@@ -220,9 +166,6 @@ export default function PaymentsPage() {
       let fallbackCollectionId = appwriteConfig.paymentsCollectionId;
       
       switch (selectedPaymentType) {
-        case 'Registration':
-          collectionId = appwriteConfig.paymentsCollectionId;
-          break;
         case 'Savings':
           collectionId = appwriteConfig.savingsCollectionId;
           break;
@@ -305,31 +248,6 @@ export default function PaymentsPage() {
     e.preventDefault();
     
   
-    // Check if member has confirmed registration AND admin approval for non-registration payments
-    if ((selectedPaymentType === 'Savings' || selectedPaymentType === 'Loan_Repayment')) {
-      if (!hasConfirmedRegistration) {
-        toast.error('Please pay the registration fee first before making other payments.');
-        return;
-      }
-      if (user?.status !== 'Active') {
-        toast.error('Your membership is pending admin approval. Please wait for approval before making payments.');
-        return;
-      }
-    }
-    
-    // Auto-cleanup rejected registration payments only
-    if (selectedPaymentType === 'Registration' && hasRejectedRegistration && rejectedRegistrationId) {
-      try {
-        await registrationService.deleteRejectedRegistrationPayment(rejectedRegistrationId);
-        setHasRejectedRegistration(false);
-        setRejectedRegistrationId(null);
-        toast.success('Rejected payment cleared automatically.');
-      } catch (error) {
-        console.error('Auto-cleanup failed:', error);
-        toast.error('Failed to clear rejected payment. Please try the retry button.');
-        return;
-      }
-    }
     
     // Validate loan repayment selection
     if (selectedPaymentType === 'Loan_Repayment') {
@@ -397,7 +315,7 @@ export default function PaymentsPage() {
     setProofPreview(null);
   };
 
-  const handlePaymentTypeChange = (type: 'Registration' | 'Savings' | 'Loan_Repayment') => {
+  const handlePaymentTypeChange = (type: 'Savings' | 'Loan_Repayment') => {
     setSelectedPaymentType(type);
     setSelectedLoanId(''); // Reset loan selection when payment type changes
     
@@ -407,52 +325,6 @@ export default function PaymentsPage() {
     }
   };
 
-  const handleRetryRejectedPayment = async () => {
-    if (!rejectedRegistrationId) return;
-    
-    setIsRetryingPayment(true);
-    try {
-      await registrationService.deleteRejectedRegistrationPayment(rejectedRegistrationId);
-      
-      // Reset states
-      setHasRejectedRegistration(false);
-      setRejectedRegistrationId(null);
-      
-      toast.success('Rejected payment cleared. You can now submit a new registration payment.');
-      
-      // Reload member data to refresh the UI
-      if (user?.memberId) {
-        const loadMemberData = async () => {
-          try {
-            const [confirmedRegistrations, pendingRegistrations, rejectedRegistrations, loanSummary] = await Promise.all([
-              registrationService.getConfirmedRegistrationPayments(),
-              registrationService.getPendingRegistrationPayments(),
-              registrationService.getRejectedRegistrationPayments(),
-              loansService.getMemberLoanSummary(user.memberId || '')
-            ]);
-            
-            const hasConfirmed = confirmedRegistrations.some(payment => payment.memberId === user.memberId);
-            const hasPending = pendingRegistrations.some(payment => payment.memberId === user.memberId);
-            const rejectedPayment = rejectedRegistrations.find(payment => payment.memberId === user.memberId);
-            const hasRejected = !!rejectedPayment;
-            
-            setHasConfirmedRegistration(hasConfirmed);
-            setHasPendingRegistration(hasPending);
-            setHasRejectedRegistration(hasRejected);
-            setRejectedRegistrationId(rejectedPayment?.$id || null);
-          } catch (error) {
-            console.error('Error reloading member data:', error);
-          }
-        };
-        await loadMemberData();
-      }
-    } catch (error) {
-      console.error('Error deleting rejected payment:', error);
-      toast.error('Failed to clear rejected payment. Please try again.');
-    } finally {
-      setIsRetryingPayment(false);
-    }
-  };
 
   return (
     <ProtectedRoute requiredRole="member">
@@ -485,61 +357,8 @@ export default function PaymentsPage() {
                   </div>
                   <p className="font-medium mb-1">No payment options available</p>
                   <p className="text-sm">
-                    {!hasConfirmedRegistration && !hasPendingRegistration && !hasRejectedRegistration
-                      ? "Please complete your registration first."
-                      : hasPendingRegistration
-                        ? "Your registration payment is pending admin approval. Please wait for confirmation before making additional payments."
-                        : hasRejectedRegistration
-                          ? "Your registration payment has been rejected by admin."
-                          : hasConfirmedRegistration && user?.status !== 'Active'
-                            ? "Your registration is pending admin approval."
-                            : "You don't have any active loans or payment options at this time."
-                    }
+                    You can make savings deposits or loan repayments if you have active loans.
                   </p>
-                  {hasRejectedRegistration && (
-                    <div className="mt-3 w-full mx-auto">
-                      <Button 
-                        variant="outline" 
-                        className="w-full justify-center"
-                        size="sm" 
-                        onClick={handleRetryRejectedPayment}
-                        disabled={isRetryingPayment}
-                        isLoading={isRetryingPayment}
-                      >
-                        {isRetryingPayment ? 'Clearing...' : 'Retry Payment'}
-                      </Button>
-                      <p className="text-xs text-neutral mt-2">
-                        Click to clear the rejected payment and submit a new registration payment
-                      </p>
-                    </div>
-                  )}
-                  {hasConfirmedRegistration && user?.status !== 'Active' && (
-                    <div className="mt-3">
-                      <Button 
-                        variant="accent" 
-                        size="sm" 
-                        onClick={async () => {
-                          await refreshUser();
-                          toast.success('Status updated! Refresh complete.');
-                        }}
-                      >
-                        Check for Approval
-                      </Button>
-                      <p className="text-xs text-neutral mt-2">
-                        Click this button if admin has approved your registration
-                      </p>
-                    </div>
-                  )}
-                  {!hasConfirmedRegistration && !hasPendingRegistration && !hasRejectedRegistration && (
-                    <div className="mt-3">
-                      <p className="text-xs text-neutral mb-2">Debug Info:</p>
-                      <p className="text-xs text-neutral">Registration Status: {hasConfirmedRegistration ? 'Confirmed' : 'Not Confirmed'}</p>
-                      <p className="text-xs text-neutral">Pending Registration: {hasPendingRegistration ? 'Yes' : 'No'}</p>
-                      <p className="text-xs text-neutral">Rejected Registration: {hasRejectedRegistration ? 'Yes' : 'No'}</p>
-                      <p className="text-xs text-neutral">User Status: {user?.status || 'Unknown'}</p>
-                      <p className="text-xs text-neutral">Active Loans: {activeLoans.length}</p>
-                    </div>
-                  )}
                 </div>
               ) : (
                 paymentTypes.map((type) => (
@@ -560,26 +379,9 @@ export default function PaymentsPage() {
                         {type.title}
                         {type.disabled && ' (Rejected)'}
                       </h3>
-                      <p className={`text-sm ${type.disabled ? 'text-red-500' : 'text-neutral'}`}>
+                      <p className="text-sm text-neutral">
                         {type.description}
                       </p>
-                                          {type.disabled && hasRejectedRegistration && (
-                      <div className="mt-2 w-full flex justify-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRetryRejectedPayment();
-                          }}
-                          disabled={isRetryingPayment}
-                          isLoading={isRetryingPayment}
-                        >
-                          {isRetryingPayment ? 'Clearing...' : 'Retry Payment'}
-                        </Button>
-                      </div>
-                    )}
                     </div>
                     {type.amount && (
                       <div className={`text-lg font-semibold ${type.disabled ? 'text-red-600' : 'text-accent'}`}>
@@ -594,26 +396,7 @@ export default function PaymentsPage() {
           </Card>
 
           {/* Payment Form */}
-          {hasRejectedRegistration ? (
-            <Card className="border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-800">Payment Form Disabled</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <AlertCircle className="mx-auto h-12 w-12 text-red-600 mb-4" />
-                  <h3 className="text-lg font-medium text-red-800 mb-2">Payment Form Unavailable</h3>
-                  <p className="text-red-700 mb-4">
-                    You have a rejected registration payment that needs to be cleared before you can make any new payments.
-                  </p>
-                  <p className="text-sm text-red-600">
-                    Please click the "Retry Payment" button in the Registration Fee section above to clear the rejected payment first.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
+          <Card>
               <CardHeader>
                 <CardTitle>Payment Details</CardTitle>
               </CardHeader>
@@ -831,7 +614,6 @@ export default function PaymentsPage() {
               </form>
             </CardContent>
           </Card>
-          )}
         </div>
 
         {/* Payment Status & Info */}

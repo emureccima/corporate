@@ -58,7 +58,7 @@ export interface PaymentRecord {
   $id?: string;
   memberId: string;
   memberName: string;
-  paymentType: 'Registration' | 'Savings' | 'Loan_Repayment';
+  paymentType: 'Savings' | 'Loan_Repayment' | 'Registration_Fee';
   amount: number;
   bankAccountNumber: string;
   transferType: 'Online' | 'Offline';
@@ -67,6 +67,9 @@ export interface PaymentRecord {
   status: 'Pending' | 'Confirmed' | 'Rejected';
   date: string;
   description?: string;
+  rejectionReason?: string;
+  paymentProofFileId?: string;
+  paymentProofFileName?: string;
   $createdAt?: string;
   $updatedAt?: string;
 }

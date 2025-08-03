@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Users, Search, Mail, Phone, MapPin, Calendar, CheckCircle, XCircle, PiggyBank, Download, Eye, CreditCard, User, DollarSign, FileText, TrendingUp, Clock, X } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { memberService, registrationService, savingsService, loansService } from '@/lib/services';
+import { memberService, savingsService, loansService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
 
 export default function AdminMembersPage() {
@@ -62,12 +62,13 @@ export default function AdminMembersPage() {
         setLoading(true);
       }
       
-      const [memberData, registrationData, allSavings, allLoanRequests] = await Promise.all([
+      const [memberData, allSavings, allLoanRequests] = await Promise.all([
         memberService.getAllMembers(),
-        registrationService.getRegistrationPayments(),
         savingsService.getAllSavingsPayments(),
         loansService.getAllLoanRequests()
       ]);
+      
+      const registrationData: any[] = []; // Registration data removed
       
       // Calculate savings totals for each member
       const savingsMap: {[key: string]: any} = {};

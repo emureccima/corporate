@@ -37,7 +37,7 @@ export function Sidebar({ userRole }: SidebarProps) {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Members', href: '/admin/members', icon: Users },
     { name: 'Registrations', href: '/admin/registrations', icon: UserPlus },
-    { name: 'Payments', href: '/admin/payments', icon: CreditCard },
+    // { name: 'Payments', href: '/admin/payments', icon: CreditCard },
     { name: 'Savings', href: '/admin/savings', icon: PiggyBank },
     { name: 'Loans', href: '/admin/loans', icon: DollarSign },
     // { name: 'Events', href: '/admin/events', icon: Calendar },

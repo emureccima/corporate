@@ -8,7 +8,7 @@ import { DollarSign, CreditCard, Calendar, TrendingUp, Plus, CheckCircle, AlertC
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { statsService, paymentService, memberService } from '@/lib/services';
+import { statsService, memberService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
 
 export default function DashboardPage() {
@@ -35,15 +35,14 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       
-      // Load member stats, recent payments, and current member status
-      const [memberStats, payments, memberData] = await Promise.all([
+      // Load member stats and current member status
+      const [memberStats, memberData] = await Promise.all([
         statsService.getMemberStats(user.memberId),
-        paymentService.getMemberPayments(user.memberId),
         memberService.getMemberById(user.memberId)
       ]);
 
       setStats(memberStats);
-      setRecentPayments(payments.slice(0, 5)); // Show last 5 payments
+      setRecentPayments([]); // Payments removed
       setMemberStatus(memberData?.status || 'Pending');
       
     } catch (error) {

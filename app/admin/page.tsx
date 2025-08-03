@@ -8,7 +8,7 @@ import { Users, DollarSign, UserCheck, TrendingUp, AlertCircle } from 'lucide-re
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { statsService, paymentService, memberService } from '@/lib/services';
+import { statsService, memberService, registrationService } from '@/lib/services';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 export default function AdminPage() {
@@ -18,6 +18,15 @@ export default function AdminPage() {
     activeMembers: 0,
     pendingPayments: 0,
     totalAmount: 0
+  });
+  
+  const [registrationStats, setRegistrationStats] = useState({
+    totalPayments: 0,
+    pendingPayments: 0,
+    approvedPayments: 0,
+    rejectedPayments: 0,
+    totalAmount: 0,
+    pendingAmount: 0
   });
   
   const [recentPayments, setRecentPayments] = useState<any[]>([]);
@@ -33,14 +42,15 @@ export default function AdminPage() {
       setLoading(true);
       
       // Load all data in parallel
-      const [adminStats, payments, members] = await Promise.all([
+      const [adminStats, members, regStats] = await Promise.all([
         statsService.getAdminStats(),
-        paymentService.getRecentPayments(5),
-        memberService.getAllMembers()
+        memberService.getAllMembers(),
+        registrationService.getRegistrationStats()
       ]);
 
       setStats(adminStats);
-      setRecentPayments(payments);
+      setRegistrationStats(regStats);
+      setRecentPayments([]); // Payments removed
       
       // Get recent members (last 5)
       const sortedMembers = members
@@ -92,12 +102,12 @@ export default function AdminPage() {
 
             <Card className="border-l-4 border-l-orange-500">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
+                <CardTitle className="text-sm font-medium">Pending Registrations</CardTitle>
                 <UserCheck className="h-4 w-4 text-orange-500" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.pendingPayments}</div>
-                <p className="text-xs text-neutral">Require confirmation</p>
+                <div className="text-2xl font-bold">{registrationStats.pendingPayments}</div>
+                <p className="text-xs text-neutral">Registration payments</p>
               </CardContent>
             </Card>
 
@@ -141,9 +151,9 @@ export default function AdminPage() {
                     View All Members ({stats.totalMembers})
                   </Button>
                 </Link>
-                <Link href="/admin/payments">
+                <Link href="/admin/registrations">
                   <Button className="w-full" variant="outline">
-                    Pending Payments ({stats.pendingPayments})
+                    Registration Payments ({registrationStats.pendingPayments})
                   </Button>
                 </Link>
               </CardContent>

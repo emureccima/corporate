@@ -26,6 +26,12 @@ export function ProtectedRoute({
         return;
       }
 
+      // Check if user is inactive and not already on payment page
+      if (user.status !== 'Active' && !window.location.pathname.includes('/payment-required')) {
+        router.push('/payment-required');
+        return;
+      }
+
       // Role-based access control
       if (requiredRole && user.role !== requiredRole) {
         // If admin tries to access member routes, redirect to admin dashboard
@@ -52,6 +58,11 @@ export function ProtectedRoute({
 
   // Don't render children if user is not authenticated or doesn't have required role
   if (!user) {
+    return null;
+  }
+
+  // Don't render children if user is inactive (except on payment required page)
+  if (user.status !== 'Active' && !window.location.pathname.includes('/payment-required')) {
     return null;
   }
 

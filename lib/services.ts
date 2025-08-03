@@ -1,5 +1,5 @@
-import { databases, appwriteConfig } from './appwrite';
-import { Query } from 'appwrite';
+import { databases, storage, appwriteConfig } from './appwrite';
+import { Query, ID } from 'appwrite';
 
 // Member Services
 export const memberService = {
@@ -86,265 +86,29 @@ export const memberService = {
       console.error('Error updating member:', error);
       throw error;
     }
-  }
-};
-
-// Payment Services
-export const paymentService = {
-  // Get all payments (admin only)
-  async getAllPayments() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [Query.orderDesc('$createdAt')]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching payments:', error);
-      return [];
-    }
   },
 
-  // Get member payments
-  async getMemberPayments(memberId: string) {
+  // Update member status
+  async updateMemberStatus(memberId: string, status: 'Active' | 'Inactive' | 'Pending') {
     try {
-      const result = await databases.listDocuments(
+      const result = await databases.updateDocument(
         appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('memberId', memberId),
-          Query.orderDesc('$createdAt')
-        ]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching member payments:', error);
-      return [];
-    }
-  },
-
-  // Get pending payments count
-  async getPendingPaymentsCount() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [Query.equal('status', 'Pending'), Query.limit(1)]
-      );
-      return result.total;
-    } catch (error) {
-      console.error('Error getting pending payments count:', error);
-      return 0;
-    }
-  },
-
-  // Get total payment amount
-  async getTotalPaymentAmount() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [Query.equal('confirmed', true)]
-      );
-      
-      const total = result.documents.reduce((sum, payment) => {
-        return sum + (payment.amount || 0);
-      }, 0);
-      
-      return total;
-    } catch (error) {
-      console.error('Error calculating total payment amount:', error);
-      return 0;
-    }
-  },
-
-  // Get recent payments
-  async getRecentPayments(limit: number = 5) {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.orderDesc('$createdAt'),
-          Query.limit(limit)
-        ]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching recent payments:', error);
-      return [];
-    }
-  }
-};
-
-// Registration Fee Services
-export const registrationService = {
-  // Get registration fee payments
-  async getRegistrationPayments() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('paymentType', 'Registration'),
-          Query.orderDesc('$createdAt')
-        ]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching registration payments:', error);
-      return [];
-    }
-  },
-
-  // Get pending registration fee payments
-  async getPendingRegistrationPayments() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('paymentType', 'Registration'),
-          Query.equal('status', 'Pending'),
-          Query.orderDesc('$createdAt')
-        ]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching pending registration payments:', error);
-      return [];
-    }
-  },
-
-  // Get confirmed registration fee payments
-  async getConfirmedRegistrationPayments() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('paymentType', 'Registration'),
-          Query.equal('status', 'Confirmed'),
-          Query.orderDesc('$createdAt')
-        ]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching confirmed registration payments:', error);
-      return [];
-    }
-  },
-
-  // Get rejected registration fee payments
-  async getRejectedRegistrationPayments() {
-    try {
-      const result = await databases.listDocuments(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        [
-          Query.equal('paymentType', 'Registration'),
-          Query.equal('status', 'Rejected'),
-          Query.orderDesc('$createdAt')
-        ]
-      );
-      return result.documents;
-    } catch (error) {
-      console.error('Error fetching rejected registration payments:', error);
-      return [];
-    }
-  },
-
-  // Get registration fee stats
-  async getRegistrationStats() {
-    try {
-      const [allRegistrations, pendingRegistrations, confirmedRegistrations] = await Promise.all([
-        this.getRegistrationPayments(),
-        this.getPendingRegistrationPayments(),
-        this.getConfirmedRegistrationPayments()
-      ]);
-
-      const totalAmount = confirmedRegistrations.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-      const pendingAmount = pendingRegistrations.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-
-      return {
-        totalRegistrations: allRegistrations.length,
-        confirmedRegistrations: confirmedRegistrations.length,
-        pendingRegistrations: pendingRegistrations.length,
-        totalAmount,
-        pendingAmount,
-        registrationFee: parseFloat(process.env.NEXT_PUBLIC_REGISTRATION_FEE || '50')
-      };
-    } catch (error) {
-      console.error('Error fetching registration stats:', error);
-      return {
-        totalRegistrations: 0,
-        confirmedRegistrations: 0,
-        pendingRegistrations: 0,
-        totalAmount: 0,
-        pendingAmount: 0,
-        registrationFee: 50
-      };
-    }
-  },
-
-  // Confirm registration payment and activate member
-  async confirmRegistrationPayment(paymentId: string) {
-    try {
-      // First, update the payment status
-      const updatedPayment = await databases.updateDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        paymentId,
+        appwriteConfig.membersCollectionId,
+        memberId,
         {
-          status: 'Confirmed',
-          confirmed: true,
-          confirmedAt: new Date().toISOString()
+          status,
+          updatedAt: new Date().toISOString()
         }
       );
-
-      // If payment is confirmed and it's a registration payment, activate the member
-      if (updatedPayment.paymentType === 'Registration' && updatedPayment.memberId) {
-        try {
-          await databases.updateDocument(
-            appwriteConfig.databaseId,
-            appwriteConfig.membersCollectionId,
-            updatedPayment.memberId,
-            {
-              status: 'Active',
-              activatedAt: new Date().toISOString()
-            }
-          );
-          console.log(`Member ${updatedPayment.memberId} activated after registration fee confirmation`);
-        } catch (memberError) {
-          console.error('Error activating member:', memberError);
-          // Payment is still confirmed even if member activation fails
-        }
-      }
-
-      return updatedPayment;
+      return result;
     } catch (error) {
-      console.error('Error confirming registration payment:', error);
-      throw error;
-    }
-  },
-
-  // Delete rejected registration payment to allow retry
-  async deleteRejectedRegistrationPayment(paymentId: string) {
-    try {
-      await databases.deleteDocument(
-        appwriteConfig.databaseId,
-        appwriteConfig.paymentsCollectionId,
-        paymentId
-      );
-      console.log(`Deleted rejected registration payment: ${paymentId}`);
-      return true;
-    } catch (error) {
-      console.error('Error deleting rejected registration payment:', error);
+      console.error('Error updating member status:', error);
       throw error;
     }
   }
 };
+
+
 
 // Savings Services
 export const savingsService = {
@@ -727,8 +491,8 @@ export const statsService = {
       ] = await Promise.all([
         memberService.getMemberCount(),
         memberService.getActiveMemberCount(),
-        paymentService.getPendingPaymentsCount(),
-        paymentService.getTotalPaymentAmount()
+        Promise.resolve(0), // Pending payments count removed
+        Promise.resolve(0)  // Total payment amount removed
       ]);
 
       return {
@@ -751,7 +515,7 @@ export const statsService = {
   // Get dashboard stats for member
   async getMemberStats(memberId: string) {
     try {
-      const payments = await paymentService.getMemberPayments(memberId);
+      const payments: any[] = []; // Payment service removed
       
       const totalPaid = payments
         .filter(p => p.confirmed)
@@ -774,5 +538,227 @@ export const statsService = {
         lastPayment: null
       };
     }
+  }
+};
+
+// Registration Payment Services
+export const registrationService = {
+  // Submit registration payment claim
+  async submitRegistrationPayment(paymentData: {
+    memberId: string;
+    memberName: string;
+    membershipNumber?: string;
+    amount: number;
+    bankAccountNumber: string;
+    transferType: 'Online' | 'Offline';
+    description?: string;
+    paymentProofFile?: File;
+  }) {
+    try {
+      let paymentProofData = {};
+      
+      // Upload payment proof if provided
+      if (paymentData.paymentProofFile) {
+        const fileId = ID.unique();
+        const uploadResult = await storage.createFile(
+          appwriteConfig.storageId,
+          fileId,
+          paymentData.paymentProofFile
+        );
+        
+        // Store file ID and filename - URLs will be generated dynamically
+        paymentProofData = {
+          paymentProofFileId: fileId,
+          paymentProofFileName: paymentData.paymentProofFile.name
+        };
+      }
+
+      const payment = await databases.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        'unique()',
+        {
+          memberId: paymentData.memberId,
+          memberName: paymentData.memberName,
+          membershipNumber: paymentData.membershipNumber,
+          amount: paymentData.amount,
+          bankAccountNumber: paymentData.bankAccountNumber,
+          transferType: paymentData.transferType,
+          description: paymentData.description,
+          ...paymentProofData,
+          paymentType: 'Registration_Fee',
+          paymentMade: true,
+          confirmed: false,
+          status: 'Pending',
+          date: new Date().toISOString()
+        }
+      );
+      return payment;
+    } catch (error) {
+      console.error('Error submitting registration payment:', error);
+      throw error;
+    }
+  },
+
+  // Get all registration payments (admin only)
+  async getAllRegistrationPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Registration_Fee'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching registration payments:', error);
+      return [];
+    }
+  },
+
+  // Get pending registration payments (admin only)
+  async getPendingRegistrationPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Registration_Fee'),
+          Query.equal('status', 'Pending'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching pending registration payments:', error);
+      return [];
+    }
+  },
+
+  // Get member's registration payment
+  async getMemberRegistrationPayment(memberId: string) {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('memberId', memberId),
+          Query.equal('paymentType', 'Registration_Fee'),
+          Query.orderDesc('$createdAt'),
+          Query.limit(1)
+        ]
+      );
+      return result.documents[0] || null;
+    } catch (error) {
+      console.error('Error fetching member registration payment:', error);
+      return null;
+    }
+  },
+
+  // Approve registration payment (admin only)
+  async approveRegistrationPayment(paymentId: string, adminNotes?: string) {
+    try {
+      // Update payment status
+      const updatedPayment = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        paymentId,
+        {
+          status: 'Confirmed',
+          confirmed: true,
+          confirmedAt: new Date().toISOString(),
+          description: adminNotes || 'Registration payment approved'
+        }
+      );
+
+      // Get payment details to update member status
+      const payment = await databases.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        paymentId
+      );
+
+      // Update member status to Active
+      await memberService.updateMemberStatus(payment.memberId, 'Active');
+
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error approving registration payment:', error);
+      throw error;
+    }
+  },
+
+  // Reject registration payment (admin only)
+  async rejectRegistrationPayment(paymentId: string, rejectionReason: string) {
+    try {
+      const updatedPayment = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        paymentId,
+        {
+          status: 'Rejected',
+          confirmed: false,
+          rejectedAt: new Date().toISOString(),
+          rejectionReason
+        }
+      );
+
+      return updatedPayment;
+    } catch (error) {
+      console.error('Error rejecting registration payment:', error);
+      throw error;
+    }
+  },
+
+  // Get registration payment statistics
+  async getRegistrationStats() {
+    try {
+      const [allPayments, pendingPayments, approvedPayments] = await Promise.all([
+        this.getAllRegistrationPayments(),
+        this.getPendingRegistrationPayments(),
+        databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.paymentsCollectionId,
+          [
+            Query.equal('paymentType', 'Registration_Fee'),
+            Query.equal('status', 'Confirmed')
+          ]
+        )
+      ]);
+
+      const totalAmount = approvedPayments.documents.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+      const pendingAmount = pendingPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+
+      return {
+        totalPayments: allPayments.length,
+        pendingPayments: pendingPayments.length,
+        approvedPayments: approvedPayments.documents.length,
+        rejectedPayments: allPayments.filter(p => p.status === 'Rejected').length,
+        totalAmount,
+        pendingAmount
+      };
+    } catch (error) {
+      console.error('Error fetching registration stats:', error);
+      return {
+        totalPayments: 0,
+        pendingPayments: 0,
+        approvedPayments: 0,
+        rejectedPayments: 0,
+        totalAmount: 0,
+        pendingAmount: 0
+      };
+    }
+  },
+
+  // Generate payment proof view URL
+  getPaymentProofViewUrl(fileId: string) {
+    return storage.getFileView(appwriteConfig.storageId, fileId);
+  },
+
+  // Generate payment proof download URL
+  getPaymentProofDownloadUrl(fileId: string) {
+    return storage.getFileDownload(appwriteConfig.storageId, fileId);
   }
 };
