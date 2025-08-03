@@ -14,7 +14,7 @@ import { ID } from 'appwrite';
 import { toast } from 'sonner';
 
 export default function PaymentsPage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [selectedPaymentType, setSelectedPaymentType] = useState<'Registration' | 'Savings' | 'Loan_Repayment'>('Registration');
   const [amount, setAmount] = useState('');
   const [paymentMade, setPaymentMade] = useState(false);
@@ -62,10 +62,16 @@ export default function PaymentsPage() {
           setSelectedLoanId(activeLoansData[0].$id);
         }
         
-        // If registration is confirmed, default to Savings
-        if (hasConfirmed && selectedPaymentType === 'Registration') {
-          setSelectedPaymentType('Savings');
-        }
+        // Debug logging
+        console.log('=== PAYMENT TYPE DEBUG ===');
+        console.log('User memberId:', user.memberId);
+        console.log('User status:', user?.status);
+        console.log('Has confirmed registration:', hasConfirmed);
+        console.log('Confirmed registrations:', confirmedRegistrations);
+        console.log('Active loans count:', activeLoansData.length);
+        console.log('Active loans:', activeLoansData);
+        
+        // The useEffect will handle auto-selection based on available payment types
       } catch (error) {
         console.error('Error loading member data:', error);
       } finally {
@@ -76,38 +82,64 @@ export default function PaymentsPage() {
     loadMemberData();
   }, [user?.memberId, selectedPaymentType]);
 
+  // Periodically refresh user status if registration is confirmed but user is not active yet
+  useEffect(() => {
+    if (hasConfirmedRegistration && user?.status !== 'Active') {
+      console.log('Registration confirmed but not active, checking for status updates...');
+      const interval = setInterval(async () => {
+        await refreshUser();
+      }, 10000); // Check every 10 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [hasConfirmedRegistration, user?.status, refreshUser]);
+
   // Check if member is approved (has paid registration AND been approved by admin)
   const isMemberApproved = hasConfirmedRegistration && user?.status === 'Active';
 
+  // Debug logging for payment type calculation
+  console.log('=== PAYMENT TYPE CALCULATION ===');
+  console.log('hasConfirmedRegistration:', hasConfirmedRegistration);
+  console.log('user?.status:', user?.status);
+  console.log('isMemberApproved:', isMemberApproved);
+  console.log('activeLoans.length:', activeLoans.length);
+
   const paymentTypes = [
-    {
+    // Only show registration if not confirmed
+    ...(!hasConfirmedRegistration ? [{
       id: 'Registration' as const,
       title: 'Registration Fee',
-      description: hasConfirmedRegistration ? 'Paid - Registration completed' : 'One-time membership registration fee',
+      description: 'One-time membership registration fee',
       amount: registrationFee,
-      disabled: hasConfirmedRegistration,
-    },
-    {
+      disabled: false,
+    }] : []),
+    // Show savings if member has confirmed registration AND been approved by admin
+    ...(hasConfirmedRegistration && user?.status === 'Active' ? [{
       id: 'Savings' as const,
       title: 'Savings Deposit',
-      description: isMemberApproved 
-        ? 'Add money to your savings account'
-        : 'Complete registration and get approved by admin to make savings deposits',
+      description: 'Add money to your savings account',
       amount: null,
-      disabled: !isMemberApproved,
-    },
-    {
+      disabled: false,
+    }] : []),
+    // Show loan repayment if member has confirmed registration AND been approved by admin AND has active loans
+    ...(hasConfirmedRegistration && user?.status === 'Active' && activeLoans.length > 0 ? [{
       id: 'Loan_Repayment' as const,
       title: 'Loan Repayment',
-      description: !isMemberApproved
-        ? 'Complete registration and get approved by admin to repay loans'
-        : activeLoans.length > 0 
-          ? `Make a payment towards your loan (${activeLoans.length} active loan${activeLoans.length !== 1 ? 's' : ''})`
-          : 'No active loans to repay',
+      description: `Make a payment towards your loan (${activeLoans.length} active loan${activeLoans.length !== 1 ? 's' : ''})`,
       amount: null,
-      disabled: !isMemberApproved || activeLoans.length === 0,
-    },
-  ].filter(type => !type.disabled);
+      disabled: false,
+    }] : []),
+  ];
+
+  console.log('Available payment types:', paymentTypes);
+
+  // Auto-select first available payment type if current selection is not available
+  useEffect(() => {
+    const currentType = paymentTypes.find(type => type.id === selectedPaymentType);
+    if (!currentType && paymentTypes.length > 0) {
+      setSelectedPaymentType(paymentTypes[0].id);
+    }
+  }, [paymentTypes, selectedPaymentType]);
 
   const confirmAndSubmitPayment = async () => {
     setIsSubmitting(true);
@@ -261,15 +293,18 @@ export default function PaymentsPage() {
     console.log('Has confirmed registration:', hasConfirmedRegistration);
     console.log('Member status:', user?.status);
     console.log('Is member approved:', isMemberApproved);
+    console.log('Available payment types:', paymentTypes.map(t => t.id));
     
-    // Check if member is approved for non-registration payments
-    if ((selectedPaymentType === 'Savings' || selectedPaymentType === 'Loan_Repayment') && !isMemberApproved) {
+    // Check if member has confirmed registration AND admin approval for non-registration payments
+    if ((selectedPaymentType === 'Savings' || selectedPaymentType === 'Loan_Repayment')) {
       if (!hasConfirmedRegistration) {
         toast.error('Please pay the registration fee first before making other payments.');
-      } else if (user?.status !== 'Active') {
-        toast.error('Your membership is pending admin approval. Please wait for approval before making payments.');
+        return;
       }
-      return;
+      if (user?.status !== 'Active') {
+        toast.error('Your membership is pending admin approval. Please wait for approval before making payments.');
+        return;
+      }
     }
     
     // Prevent duplicate registration payments
@@ -375,7 +410,48 @@ export default function PaymentsPage() {
             <CardContent className="space-y-4">
               {isLoading ? (
                 <div className="p-4 text-center text-neutral">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent mx-auto mb-2"></div>
                   Loading payment options...
+                </div>
+              ) : paymentTypes.length === 0 ? (
+                <div className="p-4 text-center text-neutral">
+                  <div className="mb-2">
+                    <CreditCard className="h-8 w-8 text-neutral mx-auto" />
+                  </div>
+                  <p className="font-medium mb-1">No payment options available</p>
+                  <p className="text-sm">
+                    {!hasConfirmedRegistration 
+                      ? "Please complete your registration first."
+                      : hasConfirmedRegistration && user?.status !== 'Active'
+                        ? "Your registration is pending admin approval."
+                        : "You don't have any active loans or payment options at this time."
+                    }
+                  </p>
+                  {hasConfirmedRegistration && user?.status !== 'Active' && (
+                    <div className="mt-3">
+                      <Button 
+                        variant="accent" 
+                        size="sm" 
+                        onClick={async () => {
+                          await refreshUser();
+                          toast.success('Status updated! Refresh complete.');
+                        }}
+                      >
+                        Check for Approval
+                      </Button>
+                      <p className="text-xs text-neutral mt-2">
+                        Click this button if admin has approved your registration
+                      </p>
+                    </div>
+                  )}
+                  {!hasConfirmedRegistration && (
+                    <div className="mt-3">
+                      <p className="text-xs text-neutral mb-2">Debug Info:</p>
+                      <p className="text-xs text-neutral">Registration Status: {hasConfirmedRegistration ? 'Confirmed' : 'Not Confirmed'}</p>
+                      <p className="text-xs text-neutral">User Status: {user?.status || 'Unknown'}</p>
+                      <p className="text-xs text-neutral">Active Loans: {activeLoans.length}</p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 paymentTypes.map((type) => (

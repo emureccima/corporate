@@ -9,6 +9,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { registrationService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function AdminRegistrationsPage() {
   const [registrationPayments, setRegistrationPayments] = useState<any[]>([]);
@@ -73,13 +74,13 @@ export default function AdminRegistrationsPage() {
       await registrationService.confirmRegistrationPayment(paymentId);
       
       // Show success message
-      alert('Registration fee confirmed! Member has been activated.');
+      toast.success('Registration fee confirmed! Member has been activated.');
       
       // Reload data
       await loadRegistrationData();
     } catch (error) {
       console.error('Error confirming registration:', error);
-      alert('Failed to confirm registration. Please try again.');
+      toast.error('Failed to confirm registration. Please try again.');
     } finally {
       setProcessingPayment(null);
     }
