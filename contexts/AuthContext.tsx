@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         appwriteConfig.membersCollectionId,
         ID.unique(),
         {
-          membershipNumber: `COOP${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100).toString().padStart(2, '0')}`,
+          membershipNumber: `CH${(Math.floor(Math.random() * 99) + 1).toString().padStart(2, '0')}`,
           fullName: name,
           email: email,
           phone: '',
