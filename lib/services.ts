@@ -236,6 +236,25 @@ export const registrationService = {
     }
   },
 
+  // Get rejected registration fee payments
+  async getRejectedRegistrationPayments() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        [
+          Query.equal('paymentType', 'Registration'),
+          Query.equal('status', 'Rejected'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching rejected registration payments:', error);
+      return [];
+    }
+  },
+
   // Get registration fee stats
   async getRegistrationStats() {
     try {
@@ -306,6 +325,22 @@ export const registrationService = {
       return updatedPayment;
     } catch (error) {
       console.error('Error confirming registration payment:', error);
+      throw error;
+    }
+  },
+
+  // Delete rejected registration payment to allow retry
+  async deleteRejectedRegistrationPayment(paymentId: string) {
+    try {
+      await databases.deleteDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.paymentsCollectionId,
+        paymentId
+      );
+      console.log(`Deleted rejected registration payment: ${paymentId}`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting rejected registration payment:', error);
       throw error;
     }
   }
