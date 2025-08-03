@@ -149,7 +149,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
@@ -227,7 +227,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Calendar className="h-5 w-5 mr-2 text-accent" />
@@ -244,7 +244,7 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
 
           {/* Recent Activity */}
