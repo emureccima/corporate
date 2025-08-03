@@ -270,7 +270,7 @@ export default function AdminRegistrationsPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                           
-                          {payment.status === 'Pending' && (
+                          {/* {payment.status === 'Pending' && (
                             <>
                               <Button 
                                 size="sm" 
@@ -283,7 +283,7 @@ export default function AdminRegistrationsPage() {
                                 {processingPayment === payment.$id ? 'Confirming...' : 'Confirm & Activate'}
                               </Button>
                             </>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     </div>
