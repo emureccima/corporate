@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name: session.name,
             role: member.role || 'member',
             memberId: member.$id,
+            status: member.status || 'Pending',
           });
         } else {
           // If no member record found, logout

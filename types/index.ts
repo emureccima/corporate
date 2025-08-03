@@ -77,6 +77,7 @@ export interface AuthUser {
   name: string;
   role: 'member' | 'admin';
   memberId?: string;
+  status?: 'Active' | 'Inactive' | 'Pending';
 }
 
 export interface BankAccount {

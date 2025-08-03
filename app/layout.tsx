@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppContent } from "@/components/layout/AppContent";
+import { Toaster } from "sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,6 +33,7 @@ export default function RootLayout({
           <AppContent>
             {children}
           </AppContent>
+          <Toaster richColors position="top-right" />
         </AuthProvider>
       </body>
     </html>

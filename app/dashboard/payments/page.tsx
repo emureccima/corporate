@@ -11,6 +11,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { databases, appwriteConfig, storage } from '@/lib/appwrite';
 import { registrationService, loansService } from '@/lib/services';
 import { ID } from 'appwrite';
+import { toast } from 'sonner';
 
 export default function PaymentsPage() {
   const { user } = useAuth();
@@ -75,6 +76,9 @@ export default function PaymentsPage() {
     loadMemberData();
   }, [user?.memberId, selectedPaymentType]);
 
+  // Check if member is approved (has paid registration AND been approved by admin)
+  const isMemberApproved = hasConfirmedRegistration && user?.status === 'Active';
+
   const paymentTypes = [
     {
       id: 'Registration' as const,
@@ -86,47 +90,26 @@ export default function PaymentsPage() {
     {
       id: 'Savings' as const,
       title: 'Savings Deposit',
-      description: 'Add money to your savings account',
+      description: isMemberApproved 
+        ? 'Add money to your savings account'
+        : 'Complete registration and get approved by admin to make savings deposits',
       amount: null,
-      disabled: false,
+      disabled: !isMemberApproved,
     },
     {
       id: 'Loan_Repayment' as const,
       title: 'Loan Repayment',
-      description: activeLoans.length > 0 
-        ? `Make a payment towards your loan (${activeLoans.length} active loan${activeLoans.length !== 1 ? 's' : ''})`
-        : 'No active loans to repay',
+      description: !isMemberApproved
+        ? 'Complete registration and get approved by admin to repay loans'
+        : activeLoans.length > 0 
+          ? `Make a payment towards your loan (${activeLoans.length} active loan${activeLoans.length !== 1 ? 's' : ''})`
+          : 'No active loans to repay',
       amount: null,
-      disabled: activeLoans.length === 0,
+      disabled: !isMemberApproved || activeLoans.length === 0,
     },
   ].filter(type => !type.disabled);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    console.log('=== PAYMENT SUBMISSION DEBUG ===');
-    console.log('Selected payment type:', selectedPaymentType);
-    console.log('Has confirmed registration:', hasConfirmedRegistration);
-    console.log('Available payment types:', paymentTypes.map(p => p.id));
-    
-    // Prevent duplicate registration payments
-    if (selectedPaymentType === 'Registration' && hasConfirmedRegistration) {
-      alert('Registration fee has already been paid. Please select a different payment type.');
-      return;
-    }
-    
-    // Validate loan repayment selection
-    if (selectedPaymentType === 'Loan_Repayment') {
-      if (activeLoans.length === 0) {
-        alert('You have no active loans to repay.');
-        return;
-      }
-      if (!selectedLoanId) {
-        alert('Please select which loan you want to make a payment towards.');
-        return;
-      }
-    }
-    
+  const confirmAndSubmitPayment = async () => {
     setIsSubmitting(true);
 
     try {
@@ -145,7 +128,7 @@ export default function PaymentsPage() {
           console.log('Successfully uploaded proof file:', proofFileId);
         } catch (uploadError) {
           console.error('File upload failed:', uploadError);
-          alert('Failed to upload payment proof. Please try again.');
+          toast.error('Failed to upload payment proof. Please try again.');
           setIsUploadingProof(false);
           setIsSubmitting(false);
           return;
@@ -252,7 +235,7 @@ export default function PaymentsPage() {
       }
       
       // Show success message
-      alert('Payment submission successful! Please wait for admin confirmation.');
+      toast.success('Payment submission successful! Please wait for admin confirmation.');
       
       // Reset form
       setAmount('');
@@ -264,15 +247,67 @@ export default function PaymentsPage() {
       
     } catch (error: any) {
       console.error('Payment submission failed:', error);
-      alert('Payment submission failed. Please try again.');
+      toast.error('Payment submission failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    console.log('=== PAYMENT SUBMISSION DEBUG ===');
+    console.log('Selected payment type:', selectedPaymentType);
+    console.log('Has confirmed registration:', hasConfirmedRegistration);
+    console.log('Member status:', user?.status);
+    console.log('Is member approved:', isMemberApproved);
+    
+    // Check if member is approved for non-registration payments
+    if ((selectedPaymentType === 'Savings' || selectedPaymentType === 'Loan_Repayment') && !isMemberApproved) {
+      if (!hasConfirmedRegistration) {
+        toast.error('Please pay the registration fee first before making other payments.');
+      } else if (user?.status !== 'Active') {
+        toast.error('Your membership is pending admin approval. Please wait for approval before making payments.');
+      }
+      return;
+    }
+    
+    // Prevent duplicate registration payments
+    if (selectedPaymentType === 'Registration' && hasConfirmedRegistration) {
+      toast.error('Registration fee has already been paid. Please select a different payment type.');
+      return;
+    }
+    
+    // Validate loan repayment selection
+    if (selectedPaymentType === 'Loan_Repayment') {
+      if (activeLoans.length === 0) {
+        toast.error('You have no active loans to repay.');
+        return;
+      }
+      if (!selectedLoanId) {
+        toast.error('Please select which loan you want to make a payment towards.');
+        return;
+      }
+    }
+
+    // Show confirmation toast with amount verification
+    toast('⚠️ Confirm Your Payment Amount', {
+      description: `You are about to submit a ${selectedPaymentType.replace('_', ' ')} payment of ₦${amount}. Please ensure this is the exact amount you are sending, as this will be permanently recorded in the system.`,
+      action: {
+        label: 'Confirm & Submit',
+        onClick: confirmAndSubmitPayment
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => toast.dismiss()
+      },
+      duration: 10000,
+    });
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    alert('Copied to clipboard!');
+    toast.success('Copied to clipboard!');
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -282,13 +317,13 @@ export default function PaymentsPage() {
     // Validate file type
     const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload only images (JPG, PNG) or PDF files');
+      toast.error('Please upload only images (JPG, PNG) or PDF files');
       return;
     }
 
     // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      toast.error('File size must be less than 5MB');
       return;
     }
 

@@ -10,6 +10,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { loansService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function MemberLoansPage() {
   const { user } = useAuth();
@@ -67,8 +68,7 @@ export default function MemberLoansPage() {
     }));
   };
 
-  const handleSubmitLoanRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const confirmAndSubmitLoan = async () => {
     if (!user?.memberId || !user?.name) return;
 
     setSubmitting(true);
@@ -88,7 +88,7 @@ export default function MemberLoansPage() {
         accountName: loanFormData.accountName
       });
 
-      alert('Loan request submitted successfully! You will be notified once it is reviewed.');
+      toast.success('Loan request submitted successfully! You will be notified once it is reviewed.');
       setShowLoanForm(false);
       setLoanFormData({
         requestedAmount: '',
@@ -105,10 +105,39 @@ export default function MemberLoansPage() {
       loadLoanData(); // Refresh data
     } catch (error) {
       console.error('Error submitting loan request:', error);
-      alert('Failed to submit loan request. Please try again.');
+      toast.error('Failed to submit loan request. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSubmitLoanRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user?.memberId || !user?.name) return;
+
+    // Check if member is approved (completed registration and approved by admin)
+    if (user?.status !== 'Active') {
+      if (user?.status === 'Pending') {
+        toast.error('Your membership is pending admin approval. Please wait for approval before requesting loans.');
+      } else {
+        toast.error('Please complete your registration and get approved by admin before requesting loans.');
+      }
+      return;
+    }
+
+    // Show confirmation toast with amount verification
+    toast('⚠️ Confirm Your Loan Amount', {
+      description: `You are requesting a loan of ₦${loanFormData.requestedAmount}. Please ensure this is the exact amount you need, as this will be permanently recorded in the system.`,
+      action: {
+        label: 'Confirm & Submit',
+        onClick: confirmAndSubmitLoan
+      },
+      cancel: {
+        label: 'Cancel',
+        onClick: () => toast.dismiss()
+      },
+      duration: 10000,
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -193,15 +222,35 @@ export default function MemberLoansPage() {
                 <h3 className="font-semibold text-blue-800 text-lg">Need financial assistance?</h3>
                 <p className="text-sm text-blue-700">Apply for a loan from the Chamber</p>
               </div>
-              <Button 
-                variant="accent" 
-                size="lg" 
-                onClick={() => setShowLoanForm(true)}
-                className="shadow-lg"
-              >
-                <Plus className="mr-2 h-5 w-5" />
-                Request Loan
-              </Button>
+              {user?.status === 'Active' ? (
+                <Button 
+                  variant="accent" 
+                  size="lg" 
+                  onClick={() => setShowLoanForm(true)}
+                  className="shadow-lg"
+                >
+                  <Plus className="mr-2 h-5 w-5" />
+                  Request Loan
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button 
+                    variant="accent" 
+                    size="lg" 
+                    disabled
+                    className="shadow-lg opacity-50"
+                  >
+                    <Plus className="mr-2 h-5 w-5" />
+                    Request Loan
+                  </Button>
+                  <p className="text-sm text-orange-600 bg-orange-50 p-2 rounded border border-orange-200 max-w-xs">
+                    {user?.status === 'Pending' 
+                      ? '⚠️ Membership pending admin approval'
+                      : '⚠️ Complete registration and get approved first'
+                    }
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -483,10 +532,25 @@ export default function MemberLoansPage() {
                   <CreditCard className="h-16 w-16 text-neutral-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">No loan requests yet</h3>
                   <p className="text-neutral mb-4">Apply for your first loan to get started</p>
-                  <Button variant="accent" onClick={() => setShowLoanForm(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Request First Loan
-                  </Button>
+                  {user?.status === 'Active' ? (
+                    <Button variant="accent" onClick={() => setShowLoanForm(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Request First Loan
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <Button variant="accent" disabled className="opacity-50">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Request First Loan
+                      </Button>
+                      <p className="text-sm text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
+                        {user?.status === 'Pending' 
+                          ? '⚠️ Membership pending admin approval'
+                          : '⚠️ Complete registration and get approved first'
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
