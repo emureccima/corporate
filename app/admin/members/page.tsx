@@ -413,26 +413,7 @@ export default function AdminMembersPage() {
                               <Eye className="h-4 w-4 mr-1" />
                               View Details
                             </Button>
-                            {member.status === 'Pending' && (
-                              <>
-                                <Button 
-                                  size="sm" 
-                                  variant="accent"
-                                  onClick={() => {/* Approve member functionality */}}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-1" />
-                                  Approve
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline"
-                                  onClick={() => {/* Reject member functionality */}}
-                                >
-                                  <XCircle className="h-4 w-4 mr-1" />
-                                  Reject
-                                </Button>
-                              </>
-                            )}
+                           
                           </div>
                           
                           {/* Financial Reports */}
@@ -754,30 +735,7 @@ export default function AdminMembersPage() {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  {selectedMember.status === 'Pending' && (
-                    <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <h4 className="font-medium mb-3 text-yellow-800">Member Actions</h4>
-                      <div className="flex space-x-3">
-                        <Button
-                          variant="accent"
-                          size="sm"
-                          onClick={() => {/* Approve member functionality */}}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Approve Member
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {/* Reject member functionality */}}
-                        >
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Reject Member
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  
                 </CardContent>
               </Card>
             </div>
