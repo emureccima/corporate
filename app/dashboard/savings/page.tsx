@@ -64,9 +64,23 @@ export default function MemberSavingsPage() {
       // Calculate member-specific stats
       const confirmedSavings = memberSavings.filter(s => s.status === 'Confirmed');
       const pendingSavings = memberSavings.filter(s => s.status === 'Pending');
-      const totalAmount = confirmedSavings.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-      const pendingAmount = pendingSavings.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-      const averageDeposit = confirmedSavings.length > 0 ? totalAmount / confirmedSavings.length : 0;
+      
+      // Handle both positive deposits and negative withdrawals
+      const totalAmount = confirmedSavings.reduce((sum, payment) => {
+        const amount = parseFloat(payment.amount) || 0;
+        return sum + amount;
+      }, 0);
+      
+      const pendingAmount = pendingSavings.reduce((sum, payment) => {
+        const amount = parseFloat(payment.amount) || 0;
+        return sum + amount;
+      }, 0);
+      
+      // Calculate average only from positive deposits (exclude withdrawals)
+      const onlyDeposits = confirmedSavings.filter(s => (parseFloat(s.amount) || 0) > 0);
+      const averageDeposit = onlyDeposits.length > 0 
+        ? onlyDeposits.reduce((sum, payment) => sum + (parseFloat(payment.amount) || 0), 0) / onlyDeposits.length 
+        : 0;
 
       setSavingsPayments(memberSavings);
       setFilteredPayments(memberSavings);

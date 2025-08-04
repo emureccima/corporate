@@ -817,15 +817,25 @@ export const withdrawalService = {
     try {
       const savingsPayments = await savingsService.getMemberSavingsPayments(memberId);
       const confirmedPayments = savingsPayments.filter(payment => payment.status === 'Confirmed');
-      const totalSavings = confirmedPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
       
-      // Get approved withdrawals to subtract from savings
-      const approvedWithdrawals = await this.getMemberWithdrawals(memberId);
-      const totalWithdrawn = approvedWithdrawals
-        .filter(w => w.status === 'Approved')
-        .reduce((sum, withdrawal) => sum + (withdrawal.requestedAmount || 0), 0);
+      // Debug logging to trace balance calculation
+      console.log('=== SAVINGS BALANCE DEBUG ===');
+      console.log('Member ID:', memberId);
+      console.log('Total savings records:', savingsPayments.length);
+      console.log('Confirmed savings records:', confirmedPayments.length);
       
-      return Math.max(0, totalSavings - totalWithdrawn);
+      // Sum all confirmed savings including negative amounts (withdrawals)
+      let totalBalance = 0;
+      confirmedPayments.forEach(payment => {
+        const amount = parseFloat(payment.amount) || 0;
+        totalBalance += amount;
+        console.log(`Record: ${payment.description || 'Savings'} - Amount: ${payment.amount} (parsed: ${amount}) - Running total: ${totalBalance}`);
+      });
+      
+      console.log('Final calculated balance:', totalBalance);
+      console.log('=== END SAVINGS BALANCE DEBUG ===');
+      
+      return Math.max(0, totalBalance);
     } catch (error) {
       console.error('Error calculating savings balance:', error);
       return 0;
@@ -955,7 +965,7 @@ export const withdrawalService = {
           memberId: withdrawal.memberId,
           memberName: withdrawal.memberName,
           membershipNumber: withdrawal.membershipNumber,
-          amount: -withdrawal.requestedAmount, // Negative amount for withdrawal
+          amount: -parseFloat(withdrawal.requestedAmount.toString()), // Ensure negative float
           status: 'Confirmed',
           description: `Savings withdrawal to ${withdrawal.bankName} account ${withdrawal.accountNumber}`,
           confirmed: true,
