@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { CreditCard, Search, CheckCircle, XCircle, Clock, Eye, DollarSign, TrendingDown, FileText, Download, User, AlertTriangle, Calendar } from 'lucide-react';
+import { CreditCard, Search, CheckCircle, XCircle, Clock, Eye, DollarSign, TrendingDown, TrendingUp, FileText, Download, User, AlertTriangle, Calendar } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { loansService } from '@/lib/services';
 import { databases, appwriteConfig, storage } from '@/lib/appwrite';
 import { formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function AdminLoansPage() {
   const [activeTab, setActiveTab] = useState<'requests' | 'repayments'>('requests');
@@ -119,7 +120,7 @@ export default function AdminLoansPage() {
       
       if (action === 'confirm') {
         await loansService.confirmLoanPayment(paymentId);
-        alert('Loan repayment confirmed successfully!');
+        toast.success('Loan repayment confirmed successfully!');
       } else if (action === 'reject') {
         await databases.updateDocument(
           appwriteConfig.databaseId,
@@ -131,14 +132,14 @@ export default function AdminLoansPage() {
             rejectedAt: new Date().toISOString()
           }
         );
-        alert('Loan repayment has been rejected.');
+        toast.success('Loan repayment has been rejected.');
       }
       
       // Refresh data after action
       await loadLoansData();
     } catch (error) {
       console.error(`Error ${action}ing loan repayment:`, error);
-      alert(`Failed to ${action} loan repayment. Please try again.`);
+      toast.error(`Failed to ${action} loan repayment. Please try again.`);
     } finally {
       setProcessingPayment(null);
     }
@@ -151,15 +152,15 @@ export default function AdminLoansPage() {
       if (action === 'approve') {
         const approvedAmount = parseFloat(approvalData.approvedAmount);
         if (!approvedAmount || approvedAmount <= 0) {
-          alert('Please enter a valid approved amount');
+          toast.error('Please enter a valid approved amount');
           return;
         }
 
         await loansService.approveLoanRequest(requestId, approvedAmount, approvalData.notes);
-        alert('Loan request approved successfully!');
+        toast.success('Loan request approved successfully!');
       } else {
         await loansService.rejectLoanRequest(requestId, approvalData.notes);
-        alert('Loan request has been rejected.');
+        toast.success('Loan request has been rejected.');
       }
 
       setShowApprovalModal(null);
@@ -167,7 +168,7 @@ export default function AdminLoansPage() {
       await loadLoansData();
     } catch (error) {
       console.error(`Error ${action}ing loan request:`, error);
-      alert(`Failed to ${action} loan request. Please try again.`);
+      toast.error(`Failed to ${action} loan request. Please try again.`);
     } finally {
       setProcessingRequest(null);
     }
@@ -212,7 +213,7 @@ export default function AdminLoansPage() {
       window.open(fileUrl, '_blank');
     } catch (error) {
       console.error('Error viewing payment proof:', error);
-      alert('Failed to load payment proof. Please try again.');
+      toast.error('Failed to load payment proof. Please try again.');
     }
   };
 
@@ -225,7 +226,7 @@ export default function AdminLoansPage() {
       link.click();
     } catch (error) {
       console.error('Error downloading payment proof:', error);
-      alert('Failed to download payment proof. Please try again.');
+      toast.error('Failed to download payment proof. Please try again.');
     }
   };
 
@@ -581,15 +582,7 @@ export default function AdminLoansPage() {
                             </div>
                           )}
                           
-                          <Button 
-                            size="sm" 
-                            variant="ghost"
-                            onClick={() => openLoanDetailsModal(request)}
-                            className="w-full"
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
-                          </Button>
+                          
                         </div>
                       </div>
                     </CardContent>

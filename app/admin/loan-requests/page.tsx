@@ -9,6 +9,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { loansService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function AdminLoanRequestsPage() {
   const [loanRequests, setLoanRequests] = useState<any[]>([]);
@@ -96,15 +97,15 @@ export default function AdminLoanRequestsPage() {
       if (action === 'approve') {
         const approvedAmount = parseFloat(approvalData.approvedAmount);
         if (!approvedAmount || approvedAmount <= 0) {
-          alert('Please enter a valid approved amount');
+          toast.error('Please enter a valid approved amount');
           return;
         }
 
         await loansService.approveLoanRequest(requestId, approvedAmount, approvalData.notes);
-        alert('Loan request approved successfully!');
+        toast.success('Loan request approved successfully!');
       } else {
         await loansService.rejectLoanRequest(requestId, approvalData.notes);
-        alert('Loan request has been rejected.');
+        toast.success('Loan request has been rejected.');
       }
 
       setShowApprovalModal(null);
@@ -112,7 +113,7 @@ export default function AdminLoanRequestsPage() {
       await loadLoanRequests();
     } catch (error) {
       console.error(`Error ${action}ing loan request:`, error);
-      alert(`Failed to ${action} loan request. Please try again.`);
+      toast.error(`Failed to ${action} loan request. Please try again.`);
     } finally {
       setProcessingRequest(null);
     }

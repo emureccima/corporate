@@ -18,7 +18,8 @@ import {
   FileText,
   TrendingUp,
   UserPlus,
-  PiggyBank
+  PiggyBank,
+  Banknote
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -37,6 +38,7 @@ export function Sidebar({ userRole }: SidebarProps) {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Members', href: '/admin/members', icon: Users },
     { name: 'Registrations', href: '/admin/registrations', icon: UserPlus },
+    { name: 'Withdrawals', href: '/admin/withdrawals', icon: Banknote },
     // { name: 'Payments', href: '/admin/payments', icon: CreditCard },
     { name: 'Savings', href: '/admin/savings', icon: PiggyBank },
     { name: 'Loans', href: '/admin/loans', icon: DollarSign },
@@ -50,7 +52,8 @@ export function Sidebar({ userRole }: SidebarProps) {
     { name: 'My Payments', href: '/dashboard/payments', icon: CreditCard },
     { name: 'My Savings', href: '/dashboard/savings', icon: PiggyBank },
     { name: 'My Loans', href: '/dashboard/loans', icon: DollarSign },
-    { name: 'My Ledger', href: '/dashboard/ledger', icon: TrendingUp },
+    { name: 'Withdrawals', href: '/dashboard/withdrawals', icon: Banknote },
+    // { name: 'My Ledger', href: '/dashboard/ledger', icon: TrendingUp },
     // { name: 'Events', href: '/events', icon: Calendar },
     // { name: 'Gallery', href: '/gallery', icon: Camera },
     { name: 'Profile', href: '/dashboard/profile', icon: Settings },

@@ -19,6 +19,7 @@ export const appwriteConfig = {
   loansCollectionId: process.env.NEXT_PUBLIC_APPWRITE_LOANS_COLLECTION_ID!,
   loanRequestsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_LOAN_REQUESTS_COLLECTION_ID!,
   paymentsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_PAYMENTS_COLLECTION_ID!,
+  withdrawalsCollectionId: process.env.NEXT_PUBLIC_APPWRITE_WITHDRAWALS_COLLECTION_ID!,
   storageId: process.env.NEXT_PUBLIC_APPWRITE_STORAGE_ID!,
 };
 

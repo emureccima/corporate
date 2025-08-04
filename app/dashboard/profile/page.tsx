@@ -10,6 +10,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { memberService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function MemberProfilePage() {
   const { user } = useAuth();
@@ -65,12 +66,27 @@ export default function MemberProfilePage() {
 
   const handleSave = async () => {
     if (!user?.memberId) {
-      alert('User not found. Please try again.');
+      toast.error('User not found. Please try again.');
       return;
     }
 
-    // Confirm before saving
-    const confirmed = window.confirm('Are you sure you want to save these changes?');
+    // Use toast confirmation instead of window.confirm
+    const confirmSave = () => new Promise((resolve) => {
+      toast('💾 Save Changes?', {
+        description: 'Are you sure you want to save these changes to your profile?',
+        action: {
+          label: 'Save',
+          onClick: () => resolve(true)
+        },
+        cancel: {
+          label: 'Cancel',
+          onClick: () => resolve(false)
+        },
+        duration: 10000
+      });
+    });
+    
+    const confirmed = await confirmSave();
     if (!confirmed) {
       return;
     }
@@ -79,19 +95,19 @@ export default function MemberProfilePage() {
     try {
       // Validate required fields
       if (!formData.fullName.trim()) {
-        alert('Full name is required.');
+        toast.error('Full name is required.');
         return;
       }
 
       if (!formData.email.trim()) {
-        alert('Email is required.');
+        toast.error('Email is required.');
         return;
       }
 
       // Basic email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        alert('Please enter a valid email address.');
+        toast.error('Please enter a valid email address.');
         return;
       }
 
@@ -99,7 +115,7 @@ export default function MemberProfilePage() {
       if (formData.phoneNumber.trim()) {
         const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
         if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
-          alert('Please enter a valid phone number.');
+          toast.error('Please enter a valid phone number.');
           return;
         }
       }
@@ -108,7 +124,7 @@ export default function MemberProfilePage() {
       if (formData.emergencyPhone.trim()) {
         const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
         if (!phoneRegex.test(formData.emergencyPhone.replace(/\s/g, ''))) {
-          alert('Please enter a valid emergency contact phone number.');
+          toast.error('Please enter a valid emergency contact phone number.');
           return;
         }
       }
@@ -125,12 +141,12 @@ export default function MemberProfilePage() {
 
       if (updatedMember) {
         setEditing(false);
-        alert('Profile updated successfully!');
+        toast.success('Profile updated successfully!');
         
         // Reload profile data
         await loadMemberProfile();
       } else {
-        alert('Failed to update profile. Please try again.');
+        toast.error('Failed to update profile. Please try again.');
       }
       
     } catch (error: any) {
@@ -138,20 +154,20 @@ export default function MemberProfilePage() {
       
       // Provide more specific error messages
       if (error.code === 401) {
-        alert('Authentication failed. Please log in again.');
+        toast.error('Authentication failed. Please log in again.');
       } else if (error.code === 403) {
-        alert('You do not have permission to update this profile.');
+        toast.error('You do not have permission to update this profile.');
       } else if (error.code === 409) {
-        alert('This email is already in use by another member.');
+        toast.error('This email is already in use by another member.');
       } else {
-        alert('Failed to update profile. Please check your connection and try again.');
+        toast.error('Failed to update profile. Please check your connection and try again.');
       }
     } finally {
       setSaving(false);
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     // Check if there are unsaved changes
     const hasChanges = 
       formData.fullName !== (memberData?.fullName || '') ||
@@ -162,7 +178,22 @@ export default function MemberProfilePage() {
       formData.emergencyPhone !== (memberData?.emergencyPhone || '');
 
     if (hasChanges) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to cancel?');
+      const confirmCancel = () => new Promise((resolve) => {
+        toast.warning('⚠️ Unsaved Changes', {
+          description: 'You have unsaved changes. Are you sure you want to cancel?',
+          action: {
+            label: 'Yes, Cancel',
+            onClick: () => resolve(true)
+          },
+          cancel: {
+            label: 'Keep Editing',
+            onClick: () => resolve(false)
+          },
+          duration: 10000
+        });
+      });
+      
+      const confirmed = await confirmCancel();
       if (!confirmed) {
         return;
       }

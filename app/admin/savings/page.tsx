@@ -10,6 +10,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { savingsService } from '@/lib/services';
 import { databases, appwriteConfig, storage } from '@/lib/appwrite';
 import { formatDate } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function AdminSavingsPage() {
   const [savingsPayments, setSavingsPayments] = useState<any[]>([]);
@@ -73,7 +74,7 @@ export default function AdminSavingsPage() {
       
       if (action === 'confirm') {
         await savingsService.confirmSavingsPayment(paymentId);
-        alert('Savings deposit confirmed successfully!');
+        toast.success('Savings deposit confirmed successfully!');
       } else if (action === 'reject') {
         await databases.updateDocument(
           appwriteConfig.databaseId,
@@ -85,14 +86,14 @@ export default function AdminSavingsPage() {
             rejectedAt: new Date().toISOString()
           }
         );
-        alert('Savings deposit has been rejected.');
+        toast.success('Savings deposit has been rejected.');
       }
       
       // Refresh data after action
       await loadSavingsData();
     } catch (error) {
       console.error(`Error ${action}ing savings:`, error);
-      alert(`Failed to ${action} savings deposit. Please try again.`);
+      toast.error(`Failed to ${action} savings deposit. Please try again.`);
     } finally {
       setProcessingPayment(null);
     }
@@ -117,7 +118,7 @@ export default function AdminSavingsPage() {
       window.open(fileUrl, '_blank');
     } catch (error) {
       console.error('Error viewing payment proof:', error);
-      alert('Failed to load payment proof. Please try again.');
+      toast.error('Failed to load payment proof. Please try again.');
     }
   };
 
@@ -130,7 +131,7 @@ export default function AdminSavingsPage() {
       link.click();
     } catch (error) {
       console.error('Error downloading payment proof:', error);
-      alert('Failed to download payment proof. Please try again.');
+      toast.error('Failed to download payment proof. Please try again.');
     }
   };
 

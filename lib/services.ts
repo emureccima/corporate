@@ -809,3 +809,236 @@ export const registrationService = {
     return storage.getFileDownload(appwriteConfig.storageId, fileId);
   }
 };
+
+// Savings Withdrawal Services
+export const withdrawalService = {
+  // Calculate member's current savings balance
+  async getMemberSavingsBalance(memberId: string) {
+    try {
+      const savingsPayments = await savingsService.getMemberSavingsPayments(memberId);
+      const confirmedPayments = savingsPayments.filter(payment => payment.status === 'Confirmed');
+      const totalSavings = confirmedPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+      
+      // Get approved withdrawals to subtract from savings
+      const approvedWithdrawals = await this.getMemberWithdrawals(memberId);
+      const totalWithdrawn = approvedWithdrawals
+        .filter(w => w.status === 'Approved')
+        .reduce((sum, withdrawal) => sum + (withdrawal.requestedAmount || 0), 0);
+      
+      return Math.max(0, totalSavings - totalWithdrawn);
+    } catch (error) {
+      console.error('Error calculating savings balance:', error);
+      return 0;
+    }
+  },
+
+  // Request savings withdrawal
+  async requestWithdrawal(withdrawalData: {
+    memberId: string;
+    memberName: string;
+    membershipNumber?: string;
+    requestedAmount: number;
+    accountNumber: string;
+    accountName: string;
+    bankName: string;
+  }) {
+    try {
+      // Get current savings balance
+      const availableBalance = await this.getMemberSavingsBalance(withdrawalData.memberId);
+      
+      // Validate withdrawal amount
+      if (withdrawalData.requestedAmount <= 0) {
+        throw new Error('Withdrawal amount must be greater than zero');
+      }
+      
+      if (withdrawalData.requestedAmount > availableBalance) {
+        throw new Error(`Insufficient funds. Available balance: ₦${availableBalance.toLocaleString()}`);
+      }
+
+      // Create withdrawal request
+      const withdrawal = await databases.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        'unique()',
+        {
+          ...withdrawalData,
+          status: 'Pending',
+          availableBalance,
+          requestedAt: new Date().toISOString()
+        }
+      );
+      
+      return withdrawal;
+    } catch (error) {
+      console.error('Error requesting withdrawal:', error);
+      throw error;
+    }
+  },
+
+  // Get member's withdrawal history
+  async getMemberWithdrawals(memberId: string) {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        [
+          Query.equal('memberId', memberId),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching member withdrawals:', error);
+      return [];
+    }
+  },
+
+  // Get all withdrawal requests (admin)
+  async getAllWithdrawals() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        [Query.orderDesc('$createdAt')]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching all withdrawals:', error);
+      return [];
+    }
+  },
+
+  // Get pending withdrawals (admin)
+  async getPendingWithdrawals() {
+    try {
+      const result = await databases.listDocuments(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        [
+          Query.equal('status', 'Pending'),
+          Query.orderDesc('$createdAt')
+        ]
+      );
+      return result.documents;
+    } catch (error) {
+      console.error('Error fetching pending withdrawals:', error);
+      return [];
+    }
+  },
+
+  // Approve withdrawal and deduct from savings automatically
+  async approveWithdrawal(withdrawalId: string, adminNotes?: string) {
+    try {
+      // Get withdrawal details
+      const withdrawal = await databases.getDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        withdrawalId
+      );
+
+      if (withdrawal.status !== 'Pending') {
+        throw new Error(`Cannot approve withdrawal - status is '${withdrawal.status}'`);
+      }
+
+      // Verify member still has sufficient balance
+      const currentBalance = await this.getMemberSavingsBalance(withdrawal.memberId);
+      if (withdrawal.requestedAmount > currentBalance) {
+        throw new Error(`Insufficient funds. Current balance: ₦${currentBalance.toLocaleString()}, Requested: ₦${withdrawal.requestedAmount.toLocaleString()}`);
+      }
+
+      // Create a savings deduction record
+      await databases.createDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.savingsCollectionId,
+        'unique()',
+        {
+          memberId: withdrawal.memberId,
+          memberName: withdrawal.memberName,
+          membershipNumber: withdrawal.membershipNumber,
+          amount: -withdrawal.requestedAmount, // Negative amount for withdrawal
+          status: 'Confirmed',
+          description: `Savings withdrawal to ${withdrawal.bankName} account ${withdrawal.accountNumber}`,
+          confirmed: true,
+          paymentType: 'Withdrawal',
+          date: new Date().toISOString(),
+          confirmedAt: new Date().toISOString()
+        }
+      );
+
+      // Update withdrawal status
+      const updatedWithdrawal = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        withdrawalId,
+        {
+          status: 'Approved',
+          processedAt: new Date().toISOString(),
+          adminNotes: adminNotes || `Withdrawal approved. ₦${withdrawal.requestedAmount.toLocaleString()} processed to ${withdrawal.bankName} account.`
+        }
+      );
+
+      return updatedWithdrawal;
+    } catch (error) {
+      console.error('Error approving withdrawal:', error);
+      throw error;
+    }
+  },
+
+  // Reject withdrawal
+  async rejectWithdrawal(withdrawalId: string, rejectionReason: string) {
+    try {
+      const updatedWithdrawal = await databases.updateDocument(
+        appwriteConfig.databaseId,
+        appwriteConfig.withdrawalsCollectionId,
+        withdrawalId,
+        {
+          status: 'Rejected',
+          processedAt: new Date().toISOString(),
+          rejectionReason,
+          adminNotes: `Withdrawal rejected: ${rejectionReason}`
+        }
+      );
+      return updatedWithdrawal;
+    } catch (error) {
+      console.error('Error rejecting withdrawal:', error);
+      throw error;
+    }
+  },
+
+  // Get withdrawal statistics
+  async getWithdrawalStats() {
+    try {
+      const [allWithdrawals, pendingWithdrawals, approvedWithdrawals] = await Promise.all([
+        this.getAllWithdrawals(),
+        this.getPendingWithdrawals(),
+        databases.listDocuments(
+          appwriteConfig.databaseId,
+          appwriteConfig.withdrawalsCollectionId,
+          [Query.equal('status', 'Approved')]
+        )
+      ]);
+
+      const totalAmount = approvedWithdrawals.documents.reduce((sum, withdrawal) => sum + (withdrawal.requestedAmount || 0), 0);
+      const pendingAmount = pendingWithdrawals.reduce((sum, withdrawal) => sum + (withdrawal.requestedAmount || 0), 0);
+
+      return {
+        totalWithdrawals: allWithdrawals.length,
+        pendingWithdrawals: pendingWithdrawals.length,
+        approvedWithdrawals: approvedWithdrawals.documents.length,
+        rejectedWithdrawals: allWithdrawals.filter(w => w.status === 'Rejected').length,
+        totalAmount,
+        pendingAmount
+      };
+    } catch (error) {
+      console.error('Error fetching withdrawal stats:', error);
+      return {
+        totalWithdrawals: 0,
+        pendingWithdrawals: 0,
+        approvedWithdrawals: 0,
+        rejectedWithdrawals: 0,
+        totalAmount: 0,
+        pendingAmount: 0
+      };
+    }
+  }
+};

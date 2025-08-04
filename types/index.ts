@@ -86,6 +86,25 @@ export interface AuthUser {
   status?: 'Active' | 'Inactive' | 'Pending';
 }
 
+export interface SavingsWithdrawal {
+  $id?: string;
+  memberId: string;
+  memberName: string;
+  membershipNumber?: string;
+  requestedAmount: number;
+  accountNumber: string;
+  accountName: string;
+  bankName: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  availableBalance: number; // Savings balance at time of request
+  requestedAt: string;
+  processedAt?: string;
+  adminNotes?: string;
+  rejectionReason?: string;
+  $createdAt?: string;
+  $updatedAt?: string;
+}
+
 export interface BankAccount {
   accountName: string;
   accountNumber: string;
