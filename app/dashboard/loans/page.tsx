@@ -11,6 +11,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { loansService } from '@/lib/services';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'sonner';
+import { Select } from '@/components/ui/Select';
 
 export default function MemberLoansPage() {
   const { user } = useAuth();
@@ -310,88 +311,76 @@ export default function MemberLoansPage() {
                 <CardDescription>Fill out the form below to request a loan</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmitLoanRequest} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Requested Amount (₦)</label>
-                      <Input
-                        type="number"
-                        name="requestedAmount"
-                        value={loanFormData.requestedAmount}
-                        onChange={handleInputChange}
-                        min="100"
-                        step="0.01"
-                        required
-                        placeholder="Enter amount needed"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Repayment Period (months)</label>
-                      <select
-                        name="repaymentPeriod"
-                        value={loanFormData.repaymentPeriod}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
-                      >
-                        <option value="6">6 months</option>
-                        <option value="12">12 months</option>
-                        <option value="18">18 months</option>
-                        <option value="24">24 months</option>
-                        <option value="36">36 months</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Monthly Income (₦)</label>
-                      <Input
-                        type="number"
-                        name="monthlyIncome"
-                        value={loanFormData.monthlyIncome}
-                        onChange={handleInputChange}
-                        min="0"
-                        step="0.01"
-                        required
-                        placeholder="Your monthly income"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Guarantor Name</label>
-                      <Input
-                        type="text"
-                        name="guarantor"
-                        value={loanFormData.guarantor}
-                        onChange={handleInputChange}
-                        placeholder="Guarantor's full name"
-                      />
-                    </div>
+                <form onSubmit={handleSubmitLoanRequest} className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                    <Input
+                      label="Requested Amount (₦)"
+                      type="number"
+                      name="requestedAmount"
+                      value={loanFormData.requestedAmount}
+                      onChange={handleInputChange}
+                      min="100"
+                      step="0.01"
+                      required
+                      placeholder="Enter amount needed"
+                    />
+                    <Select
+                      label="Repayment Period (months)"
+                      name="repaymentPeriod"
+                      value={loanFormData.repaymentPeriod}
+                      onChange={handleInputChange}
+                    >
+                      <option value="6">6 months</option>
+                      <option value="12">12 months</option>
+                      <option value="18">18 months</option>
+                      <option value="24">24 months</option>
+                      <option value="36">36 months</option>
+                    </Select>
+                    <Input
+                      label="Monthly Income (₦)"
+                      type="number"
+                      name="monthlyIncome"
+                      value={loanFormData.monthlyIncome}
+                      onChange={handleInputChange}
+                      min="0"
+                      step="0.01"
+                      required
+                      placeholder="Your monthly income"
+                    />
+                    <Input
+                      label="Guarantor Name"
+                      type="text"
+                      name="guarantor"
+                      value={loanFormData.guarantor}
+                      onChange={handleInputChange}
+                      placeholder="Guarantor's full name"
+                    />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Purpose of Loan</label>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">Purpose of Loan</label>
                     <textarea
                       name="purpose"
                       value={loanFormData.purpose}
                       onChange={handleInputChange}
                       required
                       rows={3}
-                      className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder:text-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors duration-200 text-base md:text-sm min-h-[44px] touch-manipulation"
                       placeholder="Describe what you will use the loan for..."
                     />
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Collateral (Optional)</label>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                     <Input
+                      label="Collateral (Optional)"
                       type="text"
                       name="collateral"
                       value={loanFormData.collateral}
                       onChange={handleInputChange}
                       placeholder="Assets offered as security"
                     />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Guarantor Contact</label>
                     <Input
+                      label="Guarantor Contact"
                       type="text"
                       name="guarantorContact"
                       value={loanFormData.guarantorContact}
@@ -400,54 +389,49 @@ export default function MemberLoansPage() {
                     />
                   </div>
 
-                  <div className="border-t pt-4 space-y-4">
+                  <div className="border-t pt-6 space-y-4">
                     <h4 className="font-semibold text-sm text-accent">Bank Account Details for Disbursement</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Bank Name *</label>
-                        <Input
-                          type="text"
-                          name="bankName"
-                          value={loanFormData.bankName}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="Enter your bank name"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Account Number *</label>
-                        <Input
-                          type="text"
-                          name="accountNumber"
-                          value={loanFormData.accountNumber}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="Enter account number"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Account Name *</label>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                       <Input
+                        label="Bank Name *"
                         type="text"
-                        name="accountName"
-                        value={loanFormData.accountName}
+                        name="bankName"
+                        value={loanFormData.bankName}
                         onChange={handleInputChange}
                         required
-                        placeholder="Account holder name (as shown on bank statement)"
+                        placeholder="Enter your bank name"
+                      />
+                      <Input
+                        label="Account Number *"
+                        type="text"
+                        name="accountNumber"
+                        value={loanFormData.accountNumber}
+                        onChange={handleInputChange}
+                        required
+                        placeholder="Enter account number"
                       />
                     </div>
-                    <p className="text-xs text-neutral">
+                    <Input
+                      label="Account Name *"
+                      type="text"
+                      name="accountName"
+                      value={loanFormData.accountName}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Account holder name (as shown on bank statement)"
+                    />
+                    <p className="text-xs text-neutral bg-blue-50 p-3 rounded-lg border border-blue-200">
                       These details will be used to disburse the loan amount upon approval. Please ensure all information is accurate.
                     </p>
                   </div>
 
-                  <div className="flex space-x-3 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t">
                     <Button 
                       type="submit" 
                       disabled={submitting}
                       isLoading={submitting}
-                      className="flex-1"
+                      className="flex-1 order-2 sm:order-1"
+                      size="lg"
                     >
                       Submit Application
                     </Button>
@@ -455,7 +439,8 @@ export default function MemberLoansPage() {
                       type="button" 
                       variant="outline" 
                       onClick={() => setShowLoanForm(false)}
-                      className="flex-1"
+                      className="flex-1 order-1 sm:order-2"
+                      size="lg"
                     >
                       Cancel
                     </Button>

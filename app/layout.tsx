@@ -19,6 +19,12 @@ export const metadata: Metadata = {
   title: "Emure Chambers of Commerce, Mines, Industries and Agriculture (EMURECCIMA)",
   description: "Building a stronger community through Chamber values and mutual support. Manage memberships, savings, loans, and community events.",
   keywords: "Chamber, society, membership, savings, loans, community, events",
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  }
 };
 
 export default function RootLayout({

@@ -87,10 +87,10 @@ export function Sidebar({ userRole }: SidebarProps) {
       {/* Sidebar */}
       <div className={cn(
         'fixed top-0 left-0 h-full w-64 bg-foreground text-background transform transition-transform duration-300 ease-in-out z-40',
-        'md:translate-x-0 md:static md:z-0',
+        'md:translate-x-0 md:static md:z-0 md:min-h-screen',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full min-h-screen">
           {/* Header */}
           {/* <div className="p-6 border-b border-neutral-700">
             <div className="flex items-center space-x-3">
@@ -164,8 +164,6 @@ export function Sidebar({ userRole }: SidebarProps) {
         </div>
       </div>
 
-      {/* Main content spacer for desktop */}
-      <div className="hidden md:block md:w-20 flex-shrink-0" />
     </>
   );
 }

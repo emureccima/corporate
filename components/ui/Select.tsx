@@ -1,13 +1,13 @@
-import { InputHTMLAttributes, forwardRef } from 'react';
+import { SelectHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, error, ...props }, ref) => {
+const Select = forwardRef<HTMLSelectElement, SelectProps>(
+  ({ className, label, error, children, ...props }, ref) => {
     return (
       <div className="space-y-2">
         {label && (
@@ -15,8 +15,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             {label}
           </label>
         )}
-        <input
-          type={type}
+        <select
           className={cn(
             'block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder:text-gray-400',
             'bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500',
@@ -28,7 +27,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
           ref={ref}
           {...props}
-        />
+        >
+          {children}
+        </select>
         {error && (
           <p className="text-sm text-red-600 mt-1">{error}</p>
         )}
@@ -37,6 +38,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+Select.displayName = 'Select';
 
-export { Input };
+export { Select };
