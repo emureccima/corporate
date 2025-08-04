@@ -279,7 +279,78 @@ export const loansService = {
         paymentId
       );
 
-      // Update the payment status
+      // Validate that this is a loan repayment
+      if (payment.paymentType !== 'Loan_Repayment') {
+        throw new Error('This payment is not a loan repayment');
+      }
+
+      // Check if loanRequestId exists
+      if (!payment.loanRequestId) {
+        console.warn(`Loan repayment ${paymentId} missing loanRequestId - cannot update loan balance`);
+        
+        // Still confirm the payment but don't update loan balance
+        const updatedPayment = await databases.updateDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.loansCollectionId,
+          paymentId,
+          {
+            status: 'Confirmed',
+            confirmed: true,
+            confirmedAt: new Date().toISOString(),
+            description: `${payment.description || 'Loan repayment'} (Warning: No loan linked - balance not updated)`
+          }
+        );
+        
+        throw new Error('Payment confirmed but loan balance could not be updated - loanRequestId missing. Please link this repayment to a loan manually.');
+      }
+
+      // Get the loan request and validate it exists
+      let loanRequest;
+      try {
+        loanRequest = await databases.getDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.loanRequestsCollectionId,
+          payment.loanRequestId
+        );
+      } catch (loanError) {
+        console.error('Error fetching loan request:', loanError);
+        throw new Error(`Linked loan request ${payment.loanRequestId} not found`);
+      }
+
+      // Validate loan is in correct state for repayment
+      if (loanRequest.status !== 'Approved') {
+        throw new Error(`Cannot process repayment - loan status is '${loanRequest.status}', expected 'Approved'`);
+      }
+
+      const currentBalance = loanRequest.currentBalance || loanRequest.approvedAmount || 0;
+      
+      // Validate repayment amount doesn't exceed balance
+      if (payment.amount > currentBalance) {
+        throw new Error(`Repayment amount ₦${payment.amount} exceeds outstanding balance ₦${currentBalance}`);
+      }
+
+      const newBalance = currentBalance - payment.amount;
+      const isFullyRepaid = newBalance <= 0;
+
+      // Update loan balance first (before confirming payment to ensure consistency)
+      try {
+        await databases.updateDocument(
+          appwriteConfig.databaseId,
+          appwriteConfig.loanRequestsCollectionId,
+          payment.loanRequestId,
+          {
+            currentBalance: Math.max(0, newBalance),
+            lastRepaymentDate: new Date().toISOString(),
+            status: isFullyRepaid ? 'Fully Repaid' : loanRequest.status
+            // totalRepaid: (loanRequest.totalRepaid || 0) + payment.amount // Commented out until field is added to Appwrite
+          }
+        );
+      } catch (loanUpdateError) {
+        console.error('Critical error updating loan balance:', loanUpdateError);
+        throw new Error(`Failed to update loan balance: ${loanUpdateError}`);
+      }
+
+      // Now confirm the payment
       const updatedPayment = await databases.updateDocument(
         appwriteConfig.databaseId,
         appwriteConfig.loansCollectionId,
@@ -287,38 +358,14 @@ export const loansService = {
         {
           status: 'Confirmed',
           confirmed: true,
-          confirmedAt: new Date().toISOString()
+          confirmedAt: new Date().toISOString(),
+          description: `${payment.description || 'Loan repayment'} - Balance updated from ₦${currentBalance} to ₦${Math.max(0, newBalance)}`
         }
       );
 
-      // Update the corresponding loan request balance if it exists
-      if (payment.loanRequestId) {
-        try {
-          const loanRequest = await databases.getDocument(
-            appwriteConfig.databaseId,
-            appwriteConfig.loanRequestsCollectionId,
-            payment.loanRequestId
-          );
-          
-          const currentBalance = loanRequest.currentBalance || loanRequest.approvedAmount;
-          const newBalance = currentBalance - payment.amount;
-          
-          await databases.updateDocument(
-            appwriteConfig.databaseId,
-            appwriteConfig.loanRequestsCollectionId,
-            payment.loanRequestId,
-            {
-              currentBalance: Math.max(0, newBalance), // Ensure balance doesn't go negative
-              lastRepaymentDate: new Date().toISOString(),
-              status: newBalance <= 0 ? 'Fully Repaid' : loanRequest.status
-            }
-          );
-        } catch (loanUpdateError) {
-          console.error('Error updating loan balance:', loanUpdateError);
-          // Payment confirmation still succeeded even if balance update failed
-        }
-      }
-
+      console.log(`Successfully processed loan repayment: ₦${payment.amount} for loan ${payment.loanRequestId}`);
+      console.log(`Loan balance updated: ₦${currentBalance} → ₦${Math.max(0, newBalance)}`);
+      
       return updatedPayment;
     } catch (error) {
       console.error('Error confirming loan payment:', error);

@@ -50,6 +50,7 @@ export interface LoanRecord {
   status: 'Active' | 'Paid' | 'Overdue';
   startDate: string;
   endDate: string;
+  totalRepaid?: number; // Track total amount repaid
   $createdAt?: string;
   $updatedAt?: string;
 }
@@ -70,6 +71,7 @@ export interface PaymentRecord {
   rejectionReason?: string;
   paymentProofFileId?: string;
   paymentProofFileName?: string;
+  loanRequestId?: string; // Links loan repayments to specific loan requests
   $createdAt?: string;
   $updatedAt?: string;
 }
