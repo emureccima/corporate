@@ -204,12 +204,12 @@ export default function WithdrawalsPage() {
                     <Plus className="mr-2 h-5 w-5" />
                     Request Withdrawal
                   </Button>
-                  <p className="text-sm text-orange-600 bg-orange-50 p-2 rounded border border-orange-200 max-w-xs">
+                  <div className="text-sm text-orange-600 bg-orange-50 p-3 rounded-lg border border-orange-200 text-center min-w-0">
                     {user?.status !== 'Active' 
                       ? '⚠️ Membership must be active'
                       : '⚠️ No savings balance available'
                     }
-                  </p>
+                  </div>
                 </div>
               )}
             </div>
@@ -400,12 +400,12 @@ export default function WithdrawalsPage() {
                         <Plus className="h-4 w-4 mr-2" />
                         Request First Withdrawal
                       </Button>
-                      <p className="text-sm text-orange-600 bg-orange-50 p-2 rounded border border-orange-200">
+                      <div className="text-sm text-orange-600 bg-orange-50 p-3 rounded-lg border border-orange-200 text-center">
                         {user?.status !== 'Active' 
                           ? '⚠️ Membership must be active'
                           : '⚠️ No savings balance available'
                         }
-                      </p>
+                      </div>
                     </div>
                   )}
                 </div>
