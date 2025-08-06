@@ -533,14 +533,20 @@ export const statsService = {
       const [
         totalMembers,
         activeMembers,
-        pendingPayments,
-        totalAmount
+        registrationStats,
+        savingsStats
       ] = await Promise.all([
         memberService.getMemberCount(),
         memberService.getActiveMemberCount(),
-        Promise.resolve(0), // Pending payments count removed
-        Promise.resolve(0)  // Total payment amount removed
+        registrationService.getRegistrationStats(),
+        savingsService.getSavingsStats()
       ]);
+
+      // Calculate total amount collected from all confirmed payments
+      const totalAmount = (registrationStats.totalAmount || 0) + (savingsStats.totalAmount || 0);
+      
+      // Total pending payments across all payment types
+      const pendingPayments = (registrationStats.pendingPayments || 0) + (savingsStats.pendingSavings || 0);
 
       return {
         totalMembers,

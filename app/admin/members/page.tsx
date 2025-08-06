@@ -185,12 +185,28 @@ export default function AdminMembersPage() {
 
   // Get registration fee status for a member
   const getRegistrationStatus = (memberId: string) => {
+    // Find the member to check their status
+    const member = members.find(m => m.$id === memberId);
+    
+    // If member is Active, they must have paid registration fee
+    if (member?.status === 'Active') {
+      const registration = registrationPayments.find(p => p.memberId === memberId);
+      return { 
+        status: 'Paid', 
+        color: 'bg-green-100 text-green-800 border-green-200',
+        timestamp: registration?.confirmedAt || registration?.$updatedAt || member.$updatedAt
+      };
+    }
+    
+    // Check actual registration payment record
     const registration = registrationPayments.find(p => p.memberId === memberId);
-    if (!registration) return { 
-      status: 'Not Paid', 
-      color: 'bg-red-100 text-red-800 border-red-200',
-      timestamp: null
-    };
+    if (!registration) {
+      return { 
+        status: 'Not Paid', 
+        color: 'bg-red-100 text-red-800 border-red-200',
+        timestamp: null
+      };
+    }
     
     switch (registration.status) {
       case 'Confirmed':
