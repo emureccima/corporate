@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { User, Mail, Phone, MapPin, Calendar, Edit, Save, X } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Edit, Save, X, Building2, Globe } from 'lucide-react';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { memberService } from '@/lib/services';
@@ -24,7 +24,15 @@ export default function MemberProfilePage() {
     phoneNumber: '',
     address: '',
     emergencyContact: '',
-    emergencyPhone: ''
+    emergencyPhone: '',
+    // Business Directory Fields
+    businessName: '',
+    businessDescription: '',
+    businessType: '',
+    businessPhone: '',
+    businessWebsite: '',
+    businessAddress: '',
+    includeInDirectory: false
   });
 
   useEffect(() => {
@@ -47,7 +55,15 @@ export default function MemberProfilePage() {
           phoneNumber: profile.phoneNumber || '',
           address: profile.address || '',
           emergencyContact: profile.emergencyContact || '',
-          emergencyPhone: profile.emergencyPhone || ''
+          emergencyPhone: profile.emergencyPhone || '',
+          // Business Directory Fields
+          businessName: profile.businessName || '',
+          businessDescription: profile.businessDescription || '',
+          businessType: profile.businessType || '',
+          businessPhone: profile.businessPhone || '',
+          businessWebsite: profile.businessWebsite || '',
+          businessAddress: profile.businessAddress || '',
+          includeInDirectory: profile.includeInDirectory || false
         });
       }
     } catch (error) {
@@ -57,7 +73,7 @@ export default function MemberProfilePage() {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -112,22 +128,22 @@ export default function MemberProfilePage() {
       }
 
       // Phone number validation (optional but if provided, should be valid)
-      if (formData.phoneNumber.trim()) {
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-        if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
-          toast.error('Please enter a valid phone number.');
-          return;
-        }
-      }
+      // if (formData.phoneNumber.trim()) {
+      //   const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+      //   if (!phoneRegex.test(formData.phoneNumber.replace(/\s/g, ''))) {
+      //     toast.error('Please enter a valid phone number.');
+      //     return;
+      //   }
+      // }
 
       // Emergency phone validation (optional but if provided, should be valid)
-      if (formData.emergencyPhone.trim()) {
-        const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-        if (!phoneRegex.test(formData.emergencyPhone.replace(/\s/g, ''))) {
-          toast.error('Please enter a valid emergency contact phone number.');
-          return;
-        }
-      }
+      // if (formData.emergencyPhone.trim()) {
+      //   const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
+      //   if (!phoneRegex.test(formData.emergencyPhone.replace(/\s/g, ''))) {
+      //     toast.error('Please enter a valid emergency contact phone number.');
+      //     return;
+      //   }
+      // }
 
       // Update the member profile
       const updatedMember = await memberService.updateMember(user.memberId, {
@@ -136,7 +152,17 @@ export default function MemberProfilePage() {
         phoneNumber: formData.phoneNumber.trim(),
         address: formData.address.trim(),
         emergencyContact: formData.emergencyContact.trim(),
-        emergencyPhone: formData.emergencyPhone.trim()
+        emergencyPhone: formData.emergencyPhone.trim(),
+        // Business Directory Fields
+        businessName: formData.businessName.trim(),
+        businessDescription: formData.businessDescription.trim(),
+        businessType: formData.businessType.trim(),
+        businessPhone: formData.businessPhone.trim(),
+        businessWebsite: formData.businessWebsite.trim(),
+        businessAddress: formData.businessAddress.trim(),
+        includeInDirectory: formData.includeInDirectory,
+        directoryStatus: formData.businessName.trim() ? 'Draft' : undefined,
+        directoryUpdatedAt: formData.businessName.trim() ? new Date().toISOString() : undefined
       });
 
       if (updatedMember) {
@@ -208,7 +234,15 @@ export default function MemberProfilePage() {
         phoneNumber: memberData.phoneNumber || '',
         address: memberData.address || '',
         emergencyContact: memberData.emergencyContact || '',
-        emergencyPhone: memberData.emergencyPhone || ''
+        emergencyPhone: memberData.emergencyPhone || '',
+        // Business Directory Fields
+        businessName: memberData.businessName || '',
+        businessDescription: memberData.businessDescription || '',
+        businessType: memberData.businessType || '',
+        businessPhone: memberData.businessPhone || '',
+        businessWebsite: memberData.businessWebsite || '',
+        businessAddress: memberData.businessAddress || '',
+        includeInDirectory: memberData.includeInDirectory || false
       });
     }
   };
@@ -458,6 +492,199 @@ export default function MemberProfilePage() {
                         </div>
                       )}
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Business Directory Section */}
+              <Card className="mt-8">
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle className="flex items-center">
+                        <Building2 className="h-5 w-5 mr-2" />
+                        Business Directory
+                      </CardTitle>
+                      <CardDescription>Add your business to the Chamber directory</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Business Name</label>
+                      {editing ? (
+                        <Input
+                          value={formData.businessName}
+                          onChange={(e) => handleInputChange('businessName', e.target.value)}
+                          placeholder="Enter your business name"
+                        />
+                      ) : (
+                        <div className="flex items-center p-3 bg-neutral-50 rounded-md">
+                          <Building2 className="h-4 w-4 mr-2 text-neutral" />
+                          <span>{memberData.businessName || 'Not provided'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Business Type</label>
+                      {editing ? (
+                        <select
+                          value={formData.businessType}
+                          onChange={(e) => handleInputChange('businessType', e.target.value)}
+                          className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                        >
+                          <option value="">Select business type</option>
+                          <option value="Agriculture">Agriculture</option>
+                          <option value="Manufacturing">Manufacturing</option>
+                          <option value="Services">Services</option>
+                          <option value="Retail">Retail</option>
+                          <option value="Technology">Technology</option>
+                          <option value="Healthcare">Healthcare</option>
+                          <option value="Education">Education</option>
+                          <option value="Finance">Finance</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      ) : (
+                        <div className="flex items-center p-3 bg-neutral-50 rounded-md">
+                          <Building2 className="h-4 w-4 mr-2 text-neutral" />
+                          <span>{memberData.businessType || 'Not provided'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Business Phone</label>
+                      {editing ? (
+                        <Input
+                          type="tel"
+                          value={formData.businessPhone}
+                          onChange={(e) => handleInputChange('businessPhone', e.target.value)}
+                          placeholder="Business phone number"
+                        />
+                      ) : (
+                        <div className="flex items-center p-3 bg-neutral-50 rounded-md">
+                          <Phone className="h-4 w-4 mr-2 text-neutral" />
+                          <span>{memberData.businessPhone || 'Not provided'}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Business Website</label>
+                      {editing ? (
+                        <Input
+                          type="url"
+                          value={formData.businessWebsite}
+                          onChange={(e) => handleInputChange('businessWebsite', e.target.value)}
+                          placeholder="https://www.example.com"
+                        />
+                      ) : (
+                        <div className="flex items-center p-3 bg-neutral-50 rounded-md">
+                          <Globe className="h-4 w-4 mr-2 text-neutral" />
+                          {memberData.businessWebsite ? (
+                            <a
+                              href={memberData.businessWebsite.startsWith('http') ? memberData.businessWebsite : `https://${memberData.businessWebsite}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline truncate"
+                            >
+                              {memberData.businessWebsite}
+                            </a>
+                          ) : (
+                            <span>Not provided</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Business Address</label>
+                    {editing ? (
+                      <textarea
+                        value={formData.businessAddress}
+                        onChange={(e) => handleInputChange('businessAddress', e.target.value)}
+                        placeholder="Enter your business address"
+                        rows={3}
+                        className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                      />
+                    ) : (
+                      <div className="flex items-start p-3 bg-neutral-50 rounded-md">
+                        <MapPin className="h-4 w-4 mr-2 text-neutral mt-0.5" />
+                        <span>{memberData.businessAddress || 'Not provided'}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Business Description</label>
+                    {editing ? (
+                      <textarea
+                        value={formData.businessDescription}
+                        onChange={(e) => handleInputChange('businessDescription', e.target.value)}
+                        placeholder="Describe your business, products, or services"
+                        rows={4}
+                        maxLength={200}
+                        className="w-full px-3 py-2 border border-border rounded-md focus:ring-2 focus:ring-accent focus:border-transparent"
+                      />
+                    ) : (
+                      <div className="flex items-start p-3 bg-neutral-50 rounded-md">
+                        <Building2 className="h-4 w-4 mr-2 text-neutral mt-0.5" />
+                        <span>{memberData.businessDescription || 'Not provided'}</span>
+                      </div>
+                    )}
+                    {editing && (
+                      <p className="text-xs text-neutral mt-1">
+                        {formData.businessDescription.length}/200 characters
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="border-t pt-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <label className="text-sm font-medium">Include in Public Directory</label>
+                        <p className="text-xs text-neutral">Allow your business to be visible in the Chamber directory</p>
+                      </div>
+                      {editing ? (
+                        <input
+                          type="checkbox"
+                          checked={formData.includeInDirectory}
+                          onChange={(e) => handleInputChange('includeInDirectory', e.target.checked)}
+                          className="h-4 w-4 text-accent focus:ring-accent border-gray-300 rounded"
+                        />
+                      ) : (
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          memberData.includeInDirectory 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {memberData.includeInDirectory ? 'Included' : 'Not Included'}
+                        </span>
+                      )}
+                    </div>
+
+                    {memberData.directoryStatus && (
+                      <div className="flex items-center justify-between mt-4">
+                        <span className="text-sm text-neutral">Directory Status</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          memberData.directoryStatus === 'Published' 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {memberData.directoryStatus}
+                        </span>
+                      </div>
+                    )}
+
+                    {memberData.directoryUpdatedAt && (
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm text-neutral">Directory Last Updated</span>
+                        <span className="text-sm font-medium">{formatDate(memberData.directoryUpdatedAt)}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

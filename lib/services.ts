@@ -70,6 +70,16 @@ export const memberService = {
     address?: string;
     emergencyContact?: string;
     emergencyPhone?: string;
+    // Business Directory Fields
+    businessName?: string;
+    businessDescription?: string;
+    businessType?: string;
+    businessPhone?: string;
+    businessWebsite?: string;
+    businessAddress?: string;
+    includeInDirectory?: boolean;
+    directoryStatus?: 'Draft' | 'Published';
+    directoryUpdatedAt?: string;
   }) {
     try {
       const result = await databases.updateDocument(

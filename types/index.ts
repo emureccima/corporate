@@ -7,6 +7,18 @@ export interface Member {
   joinDate: string;
   status: 'Active' | 'Inactive';
   role: 'member' | 'admin';
+  
+  // Business Directory Fields
+  businessName?: string;
+  businessDescription?: string;
+  businessType?: string;
+  businessPhone?: string;
+  businessWebsite?: string;
+  businessAddress?: string;
+  includeInDirectory: boolean;
+  directoryStatus?: 'Draft' | 'Published';
+  directoryUpdatedAt?: string;
+  
   $createdAt?: string;
   $updatedAt?: string;
 }

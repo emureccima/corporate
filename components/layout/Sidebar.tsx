@@ -19,7 +19,8 @@ import {
   TrendingUp,
   UserPlus,
   PiggyBank,
-  Banknote
+  Banknote,
+  Building2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/Button';
@@ -38,6 +39,7 @@ export function Sidebar({ userRole }: SidebarProps) {
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Members', href: '/admin/members', icon: Users },
     { name: 'Registrations', href: '/admin/registrations', icon: UserPlus },
+    { name: 'Business Directory', href: '/admin/directory', icon: Building2 },
     { name: 'Withdrawals', href: '/admin/withdrawals', icon: Banknote },
     // { name: 'Payments', href: '/admin/payments', icon: CreditCard },
     { name: 'Savings', href: '/admin/savings', icon: PiggyBank },
